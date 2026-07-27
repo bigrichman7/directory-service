@@ -41,7 +41,7 @@ public sealed class Department
         if (parentId == Guid.Empty)
             return GeneralErrors.ValueIsInvalid("ParentId не может быть Guid.Empty");
 
-        var pathResult = ValueObjects.Path.Create(parentId, slugResult.Value);
+        var pathResult = ValueObjects.Path.Create(null, slugResult.Value);
 
         var department = new Department(
             Guid.CreateVersion7(),

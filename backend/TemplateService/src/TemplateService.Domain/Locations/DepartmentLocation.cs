@@ -13,7 +13,7 @@ public sealed class DepartmentLocation
         IsPrimary = isPrimary;
     }
 
-    public DepartmentLocation() { }
+    private DepartmentLocation() { }
 
 	public Guid Id { get; private set; }
 	public Guid DepartmentId { get; private set; }
