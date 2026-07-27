@@ -6,6 +6,9 @@ dotnet_analyzer_diagnostic.category-security.severity = error
 # CA2007: ConfigureAwait — не нужен в ASP.NET Core (фреймворк сам управляет контекстом)
 dotnet_diagnostic.CA2007.severity = none
 
+# CA1707: имена идентификаторов не должны содержать символы подчеркивания
+dotnet_diagnostic.CA1707.severity = none
+
 # CA1062: проверка null-аргументов — nullable reference types делают это за нас
 dotnet_diagnostic.CA1062.severity = none
 
@@ -16,6 +19,9 @@ dotnet_diagnostic.CA1812.severity = none
 
 # CA1034: вложенные типы — в vertical slice один файл содержит несколько типов (Command/Handler)
 dotnet_diagnostic.CA1034.severity = none
+
+# CA1308: разрешает использовать ToLowerInvariant()
+dotnet_diagnostic.CA1308.severity = none
 
 # MA0004: ConfigureAwait — не нужен в ASP.NET Core
 dotnet_diagnostic.MA0004.severity = none
