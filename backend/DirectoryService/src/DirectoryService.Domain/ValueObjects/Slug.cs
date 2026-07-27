@@ -1,8 +1,8 @@
 ﻿using CSharpFunctionalExtensions;
 using System.Text.RegularExpressions;
-using TemplateService.Domain.Common.Errors;
+using DirectoryService.Domain.Common.Errors;
 
-namespace TemplateService.Domain.ValueObjects;
+namespace DirectoryService.Domain.ValueObjects;
 
 public partial record Slug
 {

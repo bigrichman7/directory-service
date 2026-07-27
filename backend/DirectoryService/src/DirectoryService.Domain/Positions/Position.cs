@@ -1,9 +1,9 @@
 ﻿using CSharpFunctionalExtensions;
 using System;
-using TemplateService.Domain.Common.Errors;
-using TemplateService.Domain.ValueObjects;
+using DirectoryService.Domain.Common.Errors;
+using DirectoryService.Domain.ValueObjects;
 
-namespace TemplateService.Domain.Positions;
+namespace DirectoryService.Domain.Positions;
 
 public sealed class Position
 {

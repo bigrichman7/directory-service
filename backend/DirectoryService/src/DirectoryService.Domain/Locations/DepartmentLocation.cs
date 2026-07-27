@@ -1,8 +1,8 @@
 ﻿using CSharpFunctionalExtensions;
 using System;
-using TemplateService.Domain.Common.Errors;
+using DirectoryService.Domain.Common.Errors;
 
-namespace TemplateService.Domain.Departments;
+namespace DirectoryService.Domain.Departments;
 public sealed class DepartmentLocation
 {
 	private DepartmentLocation(Guid id, Guid departmentId, Guid locationId, bool isPrimary)

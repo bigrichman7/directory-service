@@ -1,7 +1,7 @@
 ﻿
 using CSharpFunctionalExtensions;
 
-namespace TemplateService.Domain.ValueObjects;
+namespace DirectoryService.Domain.ValueObjects;
 
 public record Path
 {

@@ -1,4 +1,4 @@
-namespace TemplateService.Domain.Common.Errors;
+namespace DirectoryService.Domain.Common.Errors;
 
 public class DomainError
 {

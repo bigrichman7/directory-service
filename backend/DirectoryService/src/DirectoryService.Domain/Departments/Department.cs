@@ -1,8 +1,8 @@
 ﻿using CSharpFunctionalExtensions;
-using TemplateService.Domain.Common.Errors;
-using TemplateService.Domain.ValueObjects;
+using DirectoryService.Domain.Common.Errors;
+using DirectoryService.Domain.ValueObjects;
 
-namespace TemplateService.Domain.Departments;
+namespace DirectoryService.Domain.Departments;
 
 public sealed class Department
 {

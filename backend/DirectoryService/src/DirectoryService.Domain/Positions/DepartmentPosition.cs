@@ -1,8 +1,8 @@
 ﻿using CSharpFunctionalExtensions;
 using System;
-using TemplateService.Domain.Common.Errors;
+using DirectoryService.Domain.Common.Errors;
 
-namespace TemplateService.Domain.Positions;
+namespace DirectoryService.Domain.Positions;
 
 public sealed class DepartmentPosition
 {

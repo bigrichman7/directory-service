@@ -1,7 +1,7 @@
 using CSharpFunctionalExtensions;
-using TemplateService.Domain.Common.Errors;
+using DirectoryService.Domain.Common.Errors;
 
-namespace TemplateService.Domain.ValueObjects;
+namespace DirectoryService.Domain.ValueObjects;
 
 public sealed record Name
 {

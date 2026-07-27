@@ -1,10 +1,10 @@
 ﻿using CSharpFunctionalExtensions;
 using ErrorOr;
 using System;
-using TemplateService.Domain.Common.Errors;
-using TemplateService.Domain.ValueObjects;
+using DirectoryService.Domain.Common.Errors;
+using DirectoryService.Domain.ValueObjects;
 
-namespace TemplateService.Domain.Locations;
+namespace DirectoryService.Domain.Locations;
 
 public sealed class Location
 {
