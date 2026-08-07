@@ -1,6 +1,19 @@
+using DirectoryService.Infrastructure.Postgres;
+using DotNetEnv;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
+Env.Load();
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+var connectionString = $"Host={Environment.GetEnvironmentVariable("POSTGRES_HOST")};" +
+                       $"Port={Environment.GetEnvironmentVariable("POSTGRES_PORT")};" +
+                       $"Database={Environment.GetEnvironmentVariable("POSTGRES_DB")};" +
+                       $"Username={Environment.GetEnvironmentVariable("POSTGRES_USER")};" +
+                       $"Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")}";
+
+builder.Services.AddDbContext<DirectoryServiceDbContext>(options => options.UseNpgsql(connectionString));
 
 // Нативный OpenAPI .NET 9/10
 builder.Services.AddOpenApi();

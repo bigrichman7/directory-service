@@ -9,6 +9,7 @@
     <!-- Паттерн Result<T, Error> для бизнес-ошибок -->
     <PackageVersion Include="CSharpFunctionalExtensions" Version="3.6.0" />
     <!-- База данных -->
+    <PackageVersion Include="DotNetEnv" Version="3.2.0" />
     <PackageVersion Include="ErrorOr" Version="2.1.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7" />

@@ -1,0 +1,17 @@
+services:
+
+  postgres:
+    container_name: directory_service_postgres
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - directory_service-postgres-data:/var/lib/postgresql/18/data
+
+volumes:
+  directory_service-postgres-data:  
