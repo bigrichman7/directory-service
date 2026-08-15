@@ -1,5 +1,6 @@
 ﻿
 using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Departments;
 
 namespace DirectoryService.Domain.ValueObjects;
 
@@ -10,12 +11,12 @@ public record Path
 
     public string Value { get; private set; }
 
-    public static Result<Path> Create(Path? parentPath, Slug slug)
+    public static Result<Path> Create(Department? parentDepartment, Slug slug)
     {
-        if (parentPath == null)
+        if (parentDepartment == null)
             return new Path($"{Separator}{slug.Value}");
         
-        return new Path($"{parentPath.Value}{Separator}{slug.Value}");
+        return new Path($"{parentDepartment.Path}{Separator}{slug.Value}");
     }
 
     public static implicit operator string(Path value) => value.Value;

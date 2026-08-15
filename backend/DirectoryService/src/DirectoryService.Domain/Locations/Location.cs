@@ -1,14 +1,17 @@
 ﻿using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Common.Errors;
+using DirectoryService.Domain.Departments;
+using DirectoryService.Domain.ValueObjects;
 using ErrorOr;
 using System;
-using DirectoryService.Domain.Common.Errors;
-using DirectoryService.Domain.ValueObjects;
 
 namespace DirectoryService.Domain.Locations;
 
+public record LocationId(Guid Value);
+
 public sealed class Location
 {
-	private Location(Guid id, string name, string address, DateTime createdAt)
+	private Location(LocationId id, string name, string address, DateTime createdAt)
 	{
         Id = id;
         Name = name;
@@ -17,7 +20,7 @@ public sealed class Location
         UpdatedAt = createdAt;
     }
 
-	public Guid Id { get; private set; }
+	public LocationId Id { get; private set; }
 
 	public string Name { get; private set; }
 
@@ -26,6 +29,8 @@ public sealed class Location
     public DateTime CreatedAt { get; private set; }
 
 	public DateTime UpdatedAt { get; private set; }
+
+    public ICollection<DepartmentLocation> DepartmentLocations { get; private set; } = new List<DepartmentLocation>();
 
     public static Result<Location, DomainError> Create(string name, string address)
     {
@@ -38,7 +43,7 @@ public sealed class Location
             return addressResult.Error;
 
         var location = new Location(
-            Guid.CreateVersion7(),
+            new LocationId(Guid.CreateVersion7()),
             nameResult.Value,
             addressResult.Value,
             DateTime.UtcNow);
