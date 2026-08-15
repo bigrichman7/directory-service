@@ -24,6 +24,8 @@ public sealed class Department
 
     public DepartmentId Id { get; } = null!;
     public DepartmentId? ParentId { get; private set; }
+
+    public Department Parent {  get; private set; } = null!;
     public Name? Name { get; private set; }
     public Slug? Slug { get; private set; }
 
@@ -34,6 +36,8 @@ public sealed class Department
     public ICollection<DepartmentLocation> DepartmentLocations { get; private set; } = new List<DepartmentLocation>();
 
     public ICollection<DepartmentPosition> DepartmentPositions { get; private set; } = new List<DepartmentPosition>();
+
+    public ICollection<Department> Children { get; private set; } = new List<Department>();
 
     public static Result<Department, DomainError> Create(string name, string slug, Department? parentDepartment = null)
     {
@@ -60,7 +64,7 @@ public sealed class Department
 
         return new Department(
             new DepartmentId(Guid.CreateVersion7()),
-            parentDepartment.ParentId,
+            parentDepartment.Id,
             nameResult.Value,
             slugResult.Value,
             pathResult.Value,

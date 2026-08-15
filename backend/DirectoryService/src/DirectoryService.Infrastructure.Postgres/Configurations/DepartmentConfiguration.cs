@@ -51,6 +51,13 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
                 v => v.HasValue ? new DepartmentId(v.Value) : null)
             .HasColumnName("parent_id");
 
+        builder
+            .HasOne(d => d.Parent)
+            .WithMany(d => d.Children)
+            .HasForeignKey(d => d.ParentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+
         builder.Property(d => d.CreatedAt)
             .HasColumnName("created_at");
 

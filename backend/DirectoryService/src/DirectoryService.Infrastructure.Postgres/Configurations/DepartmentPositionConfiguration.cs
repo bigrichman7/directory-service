@@ -26,11 +26,15 @@ public class DepartmentPositionConfiguration : IEntityTypeConfiguration<Departme
             .HasForeignKey(d => d.DepartmentId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Property(dp => dp.Department).HasColumnName("department_id");
+
         builder
             .HasOne(dp => dp.Position)
             .WithMany(p => p.DepartmentPositions)
             .HasForeignKey(p => p.PositionId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(dp => dp.Position).HasColumnName("position_id");
     }
 }
 

@@ -40,11 +40,15 @@ public class DepartmentLocationConfiguration : IEntityTypeConfiguration<Departme
             .HasForeignKey(dl => dl.DepartmentId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Property(dl => dl.Department).HasColumnName("department_id");
+
         builder
             .HasOne(dl => dl.Location)
             .WithMany(l => l.DepartmentLocations)
             .HasForeignKey(dl => dl.LocationId)
-            .OnDelete(DeleteBehavior.Cascade);            
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Property(dl => dl.Location).HasColumnName("location_id");
     }
 }
 
