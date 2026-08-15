@@ -1,14 +1,17 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Domain.Common.Errors;
+using DirectoryService.Domain.Positions;
 using DirectoryService.Domain.ValueObjects;
 
 namespace DirectoryService.Domain.Departments;
+
+public record DepartmentId(Guid Value);
 
 public sealed class Department
 {
     private Department() { }
 
-    private Department(Guid id, Guid? parentId, Name name, Slug slug, ValueObjects.Path path, DateTime createdAt)
+    private Department(DepartmentId id, DepartmentId? parentId, Name name, Slug slug, ValueObjects.Path path, DateTime createdAt)
     {
         Id = id;
         ParentId = parentId;
@@ -19,8 +22,10 @@ public sealed class Department
         UpdatedAt = createdAt;
     }
 
-    public Guid Id { get; private set; }
-    public Guid? ParentId { get; private set; }
+    public DepartmentId Id { get; } = null!;
+    public DepartmentId? ParentId { get; private set; }
+
+    public Department Parent {  get; private set; } = null!;
     public Name? Name { get; private set; }
     public Slug? Slug { get; private set; }
 
@@ -28,7 +33,13 @@ public sealed class Department
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    public static Result<Department, DomainError> Create(string name, string slug, Guid? parentId = null)
+    public ICollection<DepartmentLocation> DepartmentLocations { get; private set; } = new List<DepartmentLocation>();
+
+    public ICollection<DepartmentPosition> DepartmentPositions { get; private set; } = new List<DepartmentPosition>();
+
+    public ICollection<Department> Children { get; private set; } = new List<Department>();
+
+    public static Result<Department, DomainError> Create(string name, string slug, Department? parentDepartment = null)
     {
         var nameResult = Name.Create(name);
         if (nameResult.IsFailure)
@@ -38,20 +49,26 @@ public sealed class Department
         if (slugResult.IsFailure)
             return slugResult.Error;
 
-        if (parentId == Guid.Empty)
-            return GeneralErrors.ValueIsInvalid("ParentId не может быть Guid.Empty");
+        var pathResult = ValueObjects.Path.Create(parentDepartment, slugResult.Value);
 
-        var pathResult = ValueObjects.Path.Create(null, slugResult.Value);
-
-        var department = new Department(
-            Guid.CreateVersion7(),
-            parentId,
+        if (parentDepartment == null)
+        {
+            return new Department(
+            new DepartmentId(Guid.CreateVersion7()),
+            null,
             nameResult.Value,
             slugResult.Value,
             pathResult.Value,
             DateTime.UtcNow);
+        }
 
-        return department;
+        return new Department(
+            new DepartmentId(Guid.CreateVersion7()),
+            parentDepartment.Id,
+            nameResult.Value,
+            slugResult.Value,
+            pathResult.Value,
+            DateTime.UtcNow);
     }
 
 }

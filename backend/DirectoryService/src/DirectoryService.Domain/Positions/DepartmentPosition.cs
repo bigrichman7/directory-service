@@ -1,12 +1,15 @@
 ﻿using CSharpFunctionalExtensions;
 using System;
 using DirectoryService.Domain.Common.Errors;
+using DirectoryService.Domain.Departments;
 
 namespace DirectoryService.Domain.Positions;
 
+public record DepartmentPositionId(Guid Value);
+
 public sealed class DepartmentPosition
 {
-    private DepartmentPosition(Guid id, Guid departmentId, Guid positionId)
+    private DepartmentPosition(DepartmentPositionId id, DepartmentId departmentId, PositionId positionId)
     {
         Id = id;
         DepartmentId = departmentId;
@@ -15,18 +18,22 @@ public sealed class DepartmentPosition
 
     private DepartmentPosition() { }
 
-    public Guid Id { get; private set; }
-    public Guid DepartmentId { get; private set; }
-    public Guid PositionId { get; private set; }
+    public DepartmentPositionId Id { get; private set; } = null!;
+    public DepartmentId DepartmentId { get; private set; } = null!;
+    public PositionId PositionId { get; private set; } = null!;
 
-    public static Result<DepartmentPosition, DomainError> Create(Guid id, Guid departmentId, Guid positionId)
+    public Position Position { get; private set; } = null!;
+
+    public Department Department { get; private set; } = null!;
+
+    public static Result<DepartmentPosition, DomainError> Create(DepartmentId departmentId, PositionId positionId)
     {
-        if (departmentId == Guid.Empty)
+        if (departmentId.Value == Guid.Empty)
             return GeneralErrors.ValueIsInvalid("DepartmentId не может быть пустым");
 
-        if (positionId == Guid.Empty)
+        if (positionId.Value == Guid.Empty)
             return GeneralErrors.ValueIsInvalid("PositionId не может быть пустым");
 
-        return new DepartmentPosition(Guid.CreateVersion7(), departmentId, positionId);
+        return new DepartmentPosition(new DepartmentPositionId(Guid.CreateVersion7()), departmentId, positionId);
     }
 }
