@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using DirectoryService.Domain.Positions;
+﻿using DirectoryService.Domain.Positions;
+using DirectoryService.Domain.ValueObjects;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DirectoryService.Infrastructure.Postgres.Configurations;
@@ -17,10 +18,15 @@ public class PositionConfiguration : IEntityTypeConfiguration<Position>
             .HasConversion(p => p.Value, p => new PositionId(p))
             .HasColumnName("id");
 
-        builder
-            .Property(p => p.Name)
-            .IsRequired()
+        builder.ComplexProperty(p => p.Name, nb =>
+        {
+            nb.IsRequired();
+
+            nb.Property(v => v.Value)
+            .IsRequired(true)
+            .HasMaxLength(Name.MAX_LENGTH)
             .HasColumnName("name");
+        });
 
         builder
             .Property(p => p.CreatedAt)

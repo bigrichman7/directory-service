@@ -16,11 +16,9 @@ public sealed class DepartmentPosition
         PositionId = positionId;
     }
 
-    private DepartmentPosition() { }
-
-    public DepartmentPositionId Id { get; private set; } = null!;
-    public DepartmentId DepartmentId { get; private set; } = null!;
-    public PositionId PositionId { get; private set; } = null!;
+    public DepartmentPositionId Id { get; private set; }
+    public DepartmentId DepartmentId { get; private set; }
+    public PositionId PositionId { get; private set; }
 
     public Position Position { get; private set; } = null!;
 
