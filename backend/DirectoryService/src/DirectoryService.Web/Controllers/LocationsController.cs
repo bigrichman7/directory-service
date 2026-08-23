@@ -11,7 +11,7 @@ public class LocationsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken cancellation)
     {
-        return Ok(new List<Location>());
+        return Ok(new List<object>());
     }
 
     [HttpGet("{locationId:guid}")]

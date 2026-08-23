@@ -1,3 +1,3 @@
 ﻿namespace DirectoryService.Contracts.Position;
 
-public record CreatePositionDto(string Name);
+public record UpdatePositionDto(string Name);

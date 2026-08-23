@@ -11,7 +11,7 @@ public class PositionsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken cancellation)
     {
-        return Ok(new List<Position>());
+        return Ok(new List<object>());
     }
 
     [HttpGet("{positionId:guid}")]
@@ -27,7 +27,7 @@ public class PositionsController : ControllerBase
     }
 
     [HttpPut("{positionId:guid}")]
-    public async Task<IActionResult> Update([FromRoute] Guid positionId, [FromBody] UpdatePostionDto position, CancellationToken cancellation)
+    public async Task<IActionResult> Update([FromRoute] Guid positionId, [FromBody] UpdatePositionDto position, CancellationToken cancellation)
     {
         return Ok("Position updated");
     }

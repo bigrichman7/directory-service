@@ -11,7 +11,7 @@ public class DepartmentsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken cancellation)
     {
-        return Ok(new List<Department>());
+        return Ok(new List<object>());
     }
 
     [HttpGet("{departmentId:guid}")]
