@@ -18,15 +18,40 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
             .HasConversion(l => l.Value, l => new LocationId(l))
             .HasColumnName("id");
 
-        builder.Property(l => l.Name)
-            .IsRequired()
-            .HasColumnName("name")
-            .HasMaxLength(Name.MAX_LENGTH);
+        builder.ComplexProperty(l => l.Name, nb =>
+        {
+            nb.IsRequired();
 
-        builder.Property(l => l.Address)
-            .IsRequired()
-            .HasColumnName("address")
-            .HasMaxLength(Address.MAX_LENGTH);
+            nb.Property(v => v.Value)
+            .IsRequired(true)
+            .HasMaxLength(Name.MAX_LENGTH)
+            .HasColumnName("name");
+        });
+
+        builder.ComplexProperty(l => l.Address, nb =>
+        {
+            nb.IsRequired();
+
+            nb.Property(v => v.City)
+            .IsRequired(true)
+            .HasMaxLength(Address.MAX_LENGTH)
+            .HasColumnName("city");
+
+            nb.Property(v => v.Street)
+            .IsRequired(true)
+            .HasMaxLength(Address.MAX_LENGTH)
+            .HasColumnName("street");
+
+            nb.Property(v => v.House)
+            .IsRequired(true)
+            .HasMaxLength(Address.MAX_LENGTH)
+            .HasColumnName("house");
+
+            nb.Property(v => v.Apartment)
+            .IsRequired(true)
+            .HasMaxLength(Address.MAX_LENGTH)
+            .HasColumnName("apartment");
+        });
 
         builder.Property(d => d.CreatedAt)
             .HasColumnName("created_at");

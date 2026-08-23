@@ -16,14 +16,11 @@ public sealed class DepartmentLocation
         IsPrimary = isPrimary;
     }
 
-    private DepartmentLocation() { }
-
-    public DepartmentLocationId Id { get; private set; } = null!;
-
-    public DepartmentId DepartmentId { get; private set; } = null!;
+    public DepartmentLocationId Id { get; private set; }
+    public DepartmentId DepartmentId { get; private set; }
     public Department Department {  get; private set; } = null!;
     public Location Location { get; private set; } = null!;
-    public LocationId LocationId { get; private set; } = null!;
+    public LocationId LocationId { get; private set; }
 
 	public bool IsPrimary { get; private set; }
 

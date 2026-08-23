@@ -11,7 +11,8 @@ public record LocationId(Guid Value);
 
 public sealed class Location
 {
-	private Location(LocationId id, string name, string address, DateTime createdAt)
+    private Location() { }
+	private Location(LocationId id, Name name, Address address, DateTime createdAt)
 	{
         Id = id;
         Name = name;
@@ -20,11 +21,11 @@ public sealed class Location
         UpdatedAt = createdAt;
     }
 
-	public LocationId Id { get; private set; }
+    public LocationId Id { get; private set; } = null!;
 
-	public string Name { get; private set; }
+	public Name Name { get; private set; } = null!;
 
-    public string Address { get; private set; }
+    public Address Address { get; private set; } = null!;
 
     public DateTime CreatedAt { get; private set; }
 
@@ -32,15 +33,16 @@ public sealed class Location
 
     public ICollection<DepartmentLocation> DepartmentLocations { get; private set; } = new List<DepartmentLocation>();
 
-    public static Result<Location, DomainError> Create(string name, string address)
+    public static Result<Location, DomainError> Create(string name, string city, string street, string house, string apartment)
     {
-        var nameResult = ValueObjects.Name.Create(name);
+        var nameResult = Name.Create(name);
         if (nameResult.IsFailure)
             return nameResult.Error;
 
-        var addressResult = ValueObjects.Address.Create(address);
+        var addressResult = Address.Create(city, street, house, apartment);
         if (addressResult.IsFailure)
             return addressResult.Error;
+
 
         var location = new Location(
             new LocationId(Guid.CreateVersion7()),

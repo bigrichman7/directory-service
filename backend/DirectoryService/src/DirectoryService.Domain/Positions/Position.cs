@@ -9,7 +9,8 @@ public record PositionId(Guid Value);
 
 public sealed class Position
 {
-    private Position(PositionId id, string name, DateTime createdAt)
+    private Position() { }
+    private Position(PositionId id, Name name, DateTime createdAt)
     {
         Id = id;
         Name = name;
@@ -17,9 +18,9 @@ public sealed class Position
         UpdatedAt = createdAt;
     }
 
-    public PositionId Id { get; private set; }
+    public PositionId Id { get; private set; } = null!;
 
-    public string Name { get; private set; }
+    public Name Name { get; private set; } = null!;
 
     public DateTime CreatedAt { get; private set; }
 
