@@ -14,5 +14,7 @@ public class CreateLocationValidator : AbstractValidator<CreateLocationDto>
         RuleFor(x => x.Street).NotEmpty().MaximumLength(100).MinimumLength(1).WithMessage("Неверное название улицы");
 
         RuleFor(x => x.House).NotEmpty().MaximumLength(100).MinimumLength(1).WithMessage("Неверный адрес дома");
+
+        RuleFor(x => x.Apartment).NotEmpty().MaximumLength(100).MinimumLength(1).WithMessage("Неверный номер квартиры");
     }
 }

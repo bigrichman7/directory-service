@@ -4,7 +4,7 @@ namespace DirectoryService.Web;
 
 public static class WebDependencyInjection
 {
-    public static IServiceCollection AddProgramDependecies(this IServiceCollection services)
+    public static IServiceCollection AddProgramDependencies(this IServiceCollection services)
     {
         return services
             .AddWebDependencies()

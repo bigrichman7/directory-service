@@ -25,7 +25,7 @@ public class LocationsService : ILocationsService
             throw new ValidationException(validationResult.Errors);
         }
 
-        if (await _locationsRepository.GetByNameAsync(locationDto.Name, cancellationToken) == Guid.Empty)
+        if (await _locationsRepository.GetByNameAsync(locationDto.Name, cancellationToken) != Guid.Empty)
         {
             throw new Exception("Такое имя локации уже существует.");
         }
@@ -39,10 +39,15 @@ public class LocationsService : ILocationsService
             locationDto.House,
             locationDto.Apartment);
 
+        if (location.IsFailure)
+        {
+            throw new Exception(location.Error.ToString());
+        }
+
         
         await _locationsRepository.AddAsync(location.Value, cancellationToken);
 
-        _logger.LogInformation("Loction created whith id {LocationId}", locationId);
+        _logger.LogInformation("Location created whith id {LocationId}", locationId);
 
         return locationId;
     }

@@ -6,7 +6,7 @@ using Scalar.AspNetCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddProgramDependecies();
+builder.Services.AddProgramDependencies();
 
 var connectionString = builder.Configuration.GetConnectionString("DirectoryServiceDb");
 
