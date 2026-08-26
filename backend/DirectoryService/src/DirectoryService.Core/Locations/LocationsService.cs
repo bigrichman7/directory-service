@@ -47,7 +47,7 @@ public class LocationsService : ILocationsService
         
         await _locationsRepository.AddAsync(location.Value, cancellationToken);
 
-        _logger.LogInformation("Location created whith id {LocationId}", locationId);
+        _logger.LogInformation("Location created with id {LocationId}", locationId);
 
         return locationId;
     }
