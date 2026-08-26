@@ -33,7 +33,7 @@ public sealed class Location
 
     public ICollection<DepartmentLocation> DepartmentLocations { get; private set; } = new List<DepartmentLocation>();
 
-    public static Result<Location, DomainError> Create(string name, string city, string street, string house, string apartment)
+    public static Result<Location, DomainError> Create(Guid locationId, string name, string city, string street, string house, string apartment)
     {
         var nameResult = Name.Create(name);
         if (nameResult.IsFailure)
@@ -45,7 +45,7 @@ public sealed class Location
 
 
         var location = new Location(
-            new LocationId(Guid.CreateVersion7()),
+            new LocationId(locationId),
             nameResult.Value,
             addressResult.Value,
             DateTime.UtcNow);
