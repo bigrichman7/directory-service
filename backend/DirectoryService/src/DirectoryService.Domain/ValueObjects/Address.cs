@@ -5,7 +5,7 @@ namespace DirectoryService.Domain.ValueObjects;
 
 public sealed record Address
 {
-    public const int MIN_LENGTH = 3;
+    public const int MIN_LENGTH = 1;
     public const int MAX_LENGTH = 100;
 
     public string City { get; private set; }
@@ -58,13 +58,13 @@ public sealed record Address
         var normalized = attribute.Trim();
 
         if (normalized.Length < MIN_LENGTH)
-            return GeneralErrors.ValueIsInvalid($"Адрес локации должен содержать минимум {MIN_LENGTH} символа");
+            return GeneralErrors.ValueIsInvalid($"Адрес {fieldName} должен содержать минимум {MIN_LENGTH} символа");
 
         if (normalized.Length > MAX_LENGTH)
-            return GeneralErrors.ValueIsInvalid($"Адрес локации не должен превышать {MAX_LENGTH} символов");
+            return GeneralErrors.ValueIsInvalid($"Адрес {fieldName} не должен превышать {MAX_LENGTH} символов");
 
         if (normalized.Any(c => char.IsControl(c)))
-            return GeneralErrors.ValueIsInvalid("Адрес локации не должен содержать управляющих символов");
+            return GeneralErrors.ValueIsInvalid($"Адрес {fieldName} не должен содержать управляющих символов");
 
         return normalized;
     }

@@ -1,21 +1,16 @@
 using DirectoryService.Infrastructure.Postgres;
+using DirectoryService.Web;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddProgramDependecies();
+
 var connectionString = builder.Configuration.GetConnectionString("DirectoryServiceDb");
 
 builder.Services.AddDbContext<DirectoryServiceDbContext>(options => options.UseNpgsql(connectionString));
-
-// Нативный OpenAPI .NET 9/10
-builder.Services.AddOpenApi();
-
-// Для тестового контроллера
-builder.Services.AddControllers();
-
-builder.Services.AddHealthChecks();
 
 WebApplication app = builder.Build();
 
