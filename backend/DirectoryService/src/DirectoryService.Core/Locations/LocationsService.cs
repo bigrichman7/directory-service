@@ -25,7 +25,8 @@ public class LocationsService : ILocationsService
             throw new ValidationException(validationResult.Errors);
         }
 
-        if (await _locationsRepository.GetByNameAsync(locationDto.Name, cancellationToken) != Guid.Empty)
+        var checkName = await _locationsRepository.GetByNameAsync(locationDto.Name, cancellationToken);
+        if (checkName.IsSuccess)
         {
             throw new Exception("Такое имя локации уже существует.");
         }
