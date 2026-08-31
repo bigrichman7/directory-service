@@ -38,7 +38,7 @@ public class EFCoreLocationsRepository : ILocationsRepository
         if (location is null)
         {
             _logger.LogError("Location with Name: {Name} not found", name);
-            return Error.NotFound("location.not.found", "Location not found");
+            return Error.NotFound("directory.location.not_found", $"Локация с именем {name} не найдена");
         }
 
         return location.Id.Value;

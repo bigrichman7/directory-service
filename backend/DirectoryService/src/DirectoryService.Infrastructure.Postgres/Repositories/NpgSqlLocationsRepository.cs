@@ -51,7 +51,7 @@ public class NpgSqlLocationsRepository : ILocationsRepository
         using var connection = await _connectionFactory.CreateConnectionAsync(cancellationToken);
 
         const string locationGetNameSql = """
-                                         SELECT * FROM locations WHERE name = @name LIMIT 1                                     
+                                         SELECT id FROM locations WHERE name = @name LIMIT 1                                     
                                          """;
 
         var locationId = await connection.QueryFirstOrDefaultAsync<Guid?>(locationGetNameSql, new { name });
@@ -59,7 +59,7 @@ public class NpgSqlLocationsRepository : ILocationsRepository
         if (locationId == null)
         {
             _logger.LogError("Location with Name: {Name} not found", name);
-            return Error.NotFound("location.not.found", $"Location with name '{name}' not found");
+            return Error.NotFound("directory.location.not_found", $"Локация с именем {name} не найдена");
         }
 
         return locationId.Value;
