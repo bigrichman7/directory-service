@@ -1,8 +1,6 @@
-﻿using DirectoryService.Domain.Locations;
-using DirectoryService.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Locations;
+using ErrorOr;
 
 namespace DirectoryService.Core.Locations;
 
@@ -10,5 +8,5 @@ public interface ILocationsRepository
 {
     Task<Guid> AddAsync(Location location, CancellationToken cancellationToken);
 
-    Task<Guid> GetByNameAsync(string name, CancellationToken cancellationToken);
+    Task<Result<Guid, Error>> GetByNameAsync(string name, CancellationToken cancellationToken);
 }

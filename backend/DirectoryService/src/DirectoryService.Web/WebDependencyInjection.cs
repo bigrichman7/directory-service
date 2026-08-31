@@ -1,4 +1,5 @@
 ﻿using DirectoryService.Core;
+using DirectoryService.Infrastructure.Postgres;
 
 namespace DirectoryService.Web;
 
@@ -8,7 +9,8 @@ public static class WebDependencyInjection
     {
         return services
             .AddWebDependencies()
-            .AddApplication();
+            .AddApplication()
+            .AddInfrastructure();
     }
 
     private static IServiceCollection AddWebDependencies(this IServiceCollection services)
