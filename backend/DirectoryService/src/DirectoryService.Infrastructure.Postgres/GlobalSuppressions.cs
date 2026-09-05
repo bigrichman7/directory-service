@@ -6,3 +6,5 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Major Code Smell", "S125:Sections of code should not be commented out", Justification = "<Ожидание>", Scope = "member", Target = "~M:DirectoryService.Infrastructure.Postgres.InfrastructureDependencyInjection.AddInfrastructure(Microsoft.Extensions.DependencyInjection.IServiceCollection)~Microsoft.Extensions.DependencyInjection.IServiceCollection")]
+[assembly: SuppressMessage("Roslynator", "RCS1093:File contains no code", Justification = "<Ожидание>")]
+[assembly: SuppressMessage("Major Code Smell", "S125:Sections of code should not be commented out", Justification = "<Ожидание>")]

@@ -11,12 +11,12 @@ public record Path
 
     public string Value { get; private set; }
 
-    public static Result<Path> Create(Department? parentDepartment, Slug slug)
+    public static Result<Path> Create(Path? parentPath, Slug slug)
     {
-        if (parentDepartment == null)
+        if (parentPath == null)
             return new Path($"{Separator}{slug.Value}");
         
-        return new Path($"{parentDepartment.Path}{Separator}{slug.Value}");
+        return new Path($"{parentPath}{Separator}{slug.Value}");
     }
 
     public static implicit operator string(Path value) => value.Value;

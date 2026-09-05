@@ -1,4 +1,5 @@
 ﻿using DirectoryService.Contracts.Location;
+using DirectoryService.Domain.Locations;
 
 namespace DirectoryService.Core.Locations;
 
