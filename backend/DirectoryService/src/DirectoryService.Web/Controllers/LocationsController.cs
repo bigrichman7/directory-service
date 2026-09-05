@@ -22,12 +22,6 @@ public class LocationsController : ControllerBase
         return Ok(new List<object>());
     }
 
-    [HttpGet("{locationId:guid}")]
-    public async Task<IActionResult> GetById([FromRoute] Guid locationId, CancellationToken cancellationToken)
-    {
-        return NotFound("Location didn't be found");
-    }
-
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateLocationDto location, CancellationToken cancellationToken)
     {

@@ -31,9 +31,7 @@ public class LocationsService : ILocationsService
             throw new Exception("Такое имя локации уже существует.");
         }
 
-        var locationId = Guid.CreateVersion7();
         var location = Location.Create(
-            locationId,
             locationDto.Name,
             locationDto.City,
             locationDto.Street,
@@ -48,8 +46,8 @@ public class LocationsService : ILocationsService
         
         await _locationsRepository.AddAsync(location.Value, cancellationToken);
 
-        _logger.LogInformation("Location created with id {LocationId}", locationId);
+        _logger.LogInformation("Location created with id {LocationId}", location.Value.Id.Value);
 
-        return locationId;
+        return location.Value.Id.Value;
     }
 }

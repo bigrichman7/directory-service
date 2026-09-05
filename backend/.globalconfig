@@ -14,6 +14,21 @@ dotnet_diagnostic.CA1062.severity = none
 
 dotnet_diagnostic.CA1515.severity = none
 
+#CA2201: не вызывайте зарезервированные типы исключений
+dotnet_diagnostic.CA2201.severity = none
+
+#CA1031: Не перехватывайте типы общих исключений
+dotnet_diagnostic.CA1031.severity = none
+
+#S112: System.Exception should not be thrown by user code
+dotnet_diagnostic.S112.severity = none
+
+#CA1873: избегайте потенциально дорогого ведения журнала
+dotnet_diagnostic.CA1873.severity = none
+
+#CA1848: Использование делегатов LoggerMessage
+dotnet_diagnostic.CA1848.severity = none
+
 # CA1812: не инстанцированные классы — ложные срабатывания на DI-классах
 dotnet_diagnostic.CA1812.severity = none
 

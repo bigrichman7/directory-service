@@ -1,3 +1,4 @@
+using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Locations;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,4 +26,7 @@ public class DirectoryServiceDbContext : DbContext
     }
 
     public DbSet<Location> Locations => Set<Location>();
+    public DbSet<Department> Departments => Set<Department>();
+
+    public DbSet<DepartmentLocation> DepartmentLocations => Set<DepartmentLocation>();
 }

@@ -26,8 +26,8 @@ public sealed class Department
     public DepartmentId? ParentId { get; private set; }
 
     public Department Parent {  get; private set; } = null!;
-    public Name? Name { get; private set; }
-    public Slug? Slug { get; private set; }
+    public Name Name { get; private set; } = null!;
+    public Slug Slug { get; private set; } = null!;
 
     public ValueObjects.Path? Path { get; private set; }
     public DateTime CreatedAt { get; private set; }
@@ -39,7 +39,7 @@ public sealed class Department
 
     public ICollection<Department> Children { get; private set; } = new List<Department>();
 
-    public static Result<Department, DomainError> Create(string name, string slug, Department? parentDepartment = null)
+    public static Result<Department, DomainError> Create(string name, string slug, DepartmentId? parentId = null, ValueObjects.Path? parentPath = null)
     {
         var nameResult = Name.Create(name);
         if (nameResult.IsFailure)
@@ -49,9 +49,9 @@ public sealed class Department
         if (slugResult.IsFailure)
             return slugResult.Error;
 
-        var pathResult = ValueObjects.Path.Create(parentDepartment, slugResult.Value);
+        var pathResult = ValueObjects.Path.Create(parentPath, slugResult.Value);
 
-        if (parentDepartment == null)
+        if (parentId == null)
         {
             return new Department(
             new DepartmentId(Guid.CreateVersion7()),
@@ -64,7 +64,7 @@ public sealed class Department
 
         return new Department(
             new DepartmentId(Guid.CreateVersion7()),
-            parentDepartment.Id,
+            parentId,
             nameResult.Value,
             slugResult.Value,
             pathResult.Value,

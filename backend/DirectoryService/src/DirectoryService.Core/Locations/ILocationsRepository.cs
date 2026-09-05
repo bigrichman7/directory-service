@@ -9,4 +9,6 @@ public interface ILocationsRepository
     Task<Guid> AddAsync(Location location, CancellationToken cancellationToken);
 
     Task<Result<Guid, Error>> GetByNameAsync(string name, CancellationToken cancellationToken);
+
+    Task<Result<Guid, Error>> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 }

@@ -1,5 +1,5 @@
 ﻿using DirectoryService.Contracts.Department;
-using DirectoryService.Domain.Departments;
+using DirectoryService.Core.Departments;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DirectoryService.Web.Controllers;
@@ -8,6 +8,13 @@ namespace DirectoryService.Web.Controllers;
 [Route("api/departments")]
 public class DepartmentsController : ControllerBase
 {
+    private readonly IDepartmentsService _departmentsService;
+
+    public DepartmentsController(IDepartmentsService departmentsService)
+    {
+        _departmentsService = departmentsService;
+    }
+
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken cancellation)
     {
@@ -23,7 +30,12 @@ public class DepartmentsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDepartmentDto department, CancellationToken cancellationToken)
     {
-        return Ok("Department created");
+        var result = await _departmentsService.Create(department, cancellationToken);
+
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok(result.Value);
     }
 
     [HttpPut("{departmentId:guid}")]

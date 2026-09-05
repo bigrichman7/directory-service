@@ -18,4 +18,8 @@ public enum ErrorType
 {
     Validation,
     Required,
+
+    NotFound,
+
+    Invalid,
 }
