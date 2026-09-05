@@ -57,12 +57,6 @@ public class EFCoreLocationsRepository : ILocationsRepository
             .Where(x => locationIds.Contains(x.Id))
             .ToListAsync(cancellationToken);
 
-        if (locations is null)
-        {
-            _logger.LogError("Локации с Id {LocationId} не найдены", ids);
-            return Error.NotFound("directory.location.not_found", $"Локации с Id {ids} не найдены");
-        }
-
         return locations;
     }
 

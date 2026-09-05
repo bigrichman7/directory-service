@@ -128,7 +128,18 @@ public class DepartmentsService : IDepartmentsService
             return departmentLocations;
         }
 
+        List<Guid> idsList = (List<Guid>)locationIds;
+        if (idsList.Count == 0)
+            return departmentLocations;
+
         var locationResult = await _locationsRepository.GetByIdsAsync(locationIds, cancellationToken);
+        if (locationResult.IsFailure)
+            return GeneralErrors.ValueIsInvalid(locationResult.Error.Description);
+
+        var foundIds = locationResult.Value.Select(l => l.Id.Value).ToHashSet();
+        var missingIds = idsList.Where(id => !foundIds.Contains(id)).ToList();
+        if (missingIds.Count > 0)
+            return GeneralErrors.ValueIsInvalid($"Локации с ID {string.Join(", ", missingIds)} не найдены.");
 
         if (locationResult.IsFailure)
         {
