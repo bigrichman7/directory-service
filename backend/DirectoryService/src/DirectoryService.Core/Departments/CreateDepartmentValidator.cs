@@ -11,6 +11,6 @@ public class CreateDepartmentValidator : AbstractValidator<CreateDepartmentDto>
     public CreateDepartmentValidator()
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200).MinimumLength(2).WithMessage("Название отдела невалидно");
-        RuleFor(x => x.Slug).NotEmpty().MaximumLength(200).MinimumLength(2).WithMessage("Slug не может быть пустым");
+        RuleFor(x => x.Slug).NotEmpty().MaximumLength(200).MinimumLength(2).Matches("^[a-z0-9]+(?:-[a-z0-9]+)*$").WithMessage("Slug не может быть пустым");
     }
 }

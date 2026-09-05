@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Core.Departments;
 using DirectoryService.Domain.Departments;
+using DirectoryService.Domain.ValueObjects;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -56,10 +57,10 @@ public class DepartmentsRepository : IDepartmentsRepository
         return department.Id.Value;
     }
 
-    public async Task<Result<Guid, Error>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Error>> GetByIdAsync(DepartmentId id, CancellationToken cancellationToken)
     {
         var department = await _dbContext.Departments
-            .Where(x => x.Id == new DepartmentId(id))
+            .Where(x => x.Id == id)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (department is null)
@@ -71,10 +72,10 @@ public class DepartmentsRepository : IDepartmentsRepository
         return department.Id.Value;
     }
 
-    public async Task<Result<Guid, Error>> GetByNameAsync(string name, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Error>> GetByNameAsync(Name name, CancellationToken cancellationToken)
     {
         var department = await _dbContext.Departments
-            .Where(x => x.Name.Value == name)
+            .Where(x => x.Name == name)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (department is null)
@@ -86,10 +87,10 @@ public class DepartmentsRepository : IDepartmentsRepository
         return department.Id.Value;
     }
 
-    public async Task<Result<Guid, Error>> GetBySlugAsync(string slug, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Error>> GetBySlugAsync(Slug slug, CancellationToken cancellationToken)
     {
         var department = await _dbContext.Departments
-            .Where(x => x.Slug.Value == slug)
+            .Where(x => x.Slug == slug)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (department is null)
@@ -101,10 +102,10 @@ public class DepartmentsRepository : IDepartmentsRepository
         return department.Id.Value;
     }
 
-    public async Task<Result<Domain.ValueObjects.Path, Error>> GetPathByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Result<Domain.ValueObjects.Path, Error>> GetPathByIdAsync(DepartmentId id, CancellationToken cancellationToken)
     {
         var department = await _dbContext.Departments
-            .Where(x => x.Id == new DepartmentId(id))
+            .Where(x => x.Id == id)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (department is null)

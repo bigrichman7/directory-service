@@ -43,6 +43,29 @@ public class EFCoreLocationsRepository : ILocationsRepository
         return location.Id.Value;
     }
 
+    public async Task<Result<List<Location>, Error>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
+    {
+        var idsList = ids.Distinct().ToList();
+        if (idsList.Count == 0)
+        {
+            return new List<Location>();
+        }
+
+        var locationIds = idsList.Select(id => new LocationId(id)).ToList();
+
+        var locations = await _dbContext.Locations
+            .Where(x => locationIds.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+
+        if (locations is null)
+        {
+            _logger.LogError("Локации с Id {LocationId} не найдены", ids);
+            return Error.NotFound("directory.location.not_found", $"Локации с Id {ids} не найдены");
+        }
+
+        return locations;
+    }
+
     public async Task<Result<Guid, Error>> GetByNameAsync(string name, CancellationToken cancellationToken)
     {
         var location = await _dbContext.Locations

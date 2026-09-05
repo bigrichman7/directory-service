@@ -4,6 +4,7 @@ using DirectoryService.Core.Locations;
 using DirectoryService.Domain.Common.Errors;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Locations;
+using DirectoryService.Domain.ValueObjects;
 using ErrorOr;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
@@ -84,14 +85,14 @@ public class DepartmentsService : IDepartmentsService
             return Error.Failure("directoryservice.department.validation_failed", "Ошибка валидации CreateDepartmentDto.");
         }
 
-        var nameExists = await _departmentsRepository.GetByNameAsync(dto.Name, cancellationToken);
+        var nameExists = await _departmentsRepository.GetByNameAsync(Name.Create(dto.Name).Value, cancellationToken);
         if (nameExists.IsSuccess)
         {
             _logger.LogError("Подразделение с именем {Name} уже существует.", dto.Name);
             return Error.Failure("directoryservice.department.name_already_exists", $"Подразделение с именем {dto.Name} уже существует.");
         }
 
-        var slugExists = await _departmentsRepository.GetBySlugAsync(dto.Slug, cancellationToken);
+        var slugExists = await _departmentsRepository.GetBySlugAsync(Slug.Create(dto.Slug).Value, cancellationToken);
         if (slugExists.IsSuccess)
         {
             _logger.LogError("Подразделение с slug {Slug} уже существует.", dto.Slug);
@@ -102,14 +103,14 @@ public class DepartmentsService : IDepartmentsService
     }
     private async Task<Result<Domain.ValueObjects.Path, Error>> GetParentPath(DepartmentId parentId, CancellationToken cancellation)
     {
-        var parentResult = await _departmentsRepository.GetByIdAsync(parentId.Value, cancellation);
+        var parentResult = await _departmentsRepository.GetByIdAsync(new DepartmentId(parentId.Value), cancellation);
         if (parentResult.IsFailure)
         {
             _logger.LogError("Родительское подразделение с Id {ParentId} не найдено.", parentId.Value);
             return Error.Failure("directoryservice.department.parent_not_found", $"Родительское подразделение с Id {parentId} не найдено.");
         }
 
-        var pathResult = await _departmentsRepository.GetPathByIdAsync(parentId.Value, cancellation);
+        var pathResult = await _departmentsRepository.GetPathByIdAsync(new DepartmentId(parentId.Value), cancellation);
         if (pathResult.IsFailure)
         {
             _logger.LogError("Путь к родительскому подразделению с {ParentId} не найден", parentId.Value);
@@ -127,15 +128,15 @@ public class DepartmentsService : IDepartmentsService
             return departmentLocations;
         }
 
+        var locationResult = await _locationsRepository.GetByIdsAsync(locationIds, cancellationToken);
+
+        if (locationResult.IsFailure)
+        {
+            return GeneralErrors.ValueIsInvalid($"Локация с ID {locationIds} не найдены.");
+        }
+
         foreach (var locationId in locationIds)
         {
-            var locationResult = await _locationsRepository.GetByIdAsync(locationId, cancellationToken);
-
-            if (locationResult.IsFailure)
-            {
-                return GeneralErrors.ValueIsInvalid($"Локация с ID {locationId} не найдена.");
-            }
-
             var departmentLocationResult = DepartmentLocation.Create(
                 new DepartmentId(departmentId.Value),
                 new LocationId(locationId),
