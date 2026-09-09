@@ -38,6 +38,37 @@ public class DepartmentsController : ControllerBase
         return Ok(result.Value);
     }
 
+    [HttpPost("{departmentId:guid}/locations/{locationId:guid}")]
+    public async Task<IActionResult> AddLocationToDepartment([FromRoute] Guid departmentId, [FromRoute] Guid locationId, [FromBody] bool? isPrimary, CancellationToken cancellationToken)
+    {
+        var result = await _departmentsService.AddLocation(departmentId, locationId, isPrimary ?? false, cancellationToken);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
+
+    [HttpDelete("{departmentId:guid}/locations/{locationId:guid}")]
+    public async Task<IActionResult> RemoveLocationFromDepartment([FromRoute] Guid departmentId, [FromRoute] Guid locationId, CancellationToken cancellationToken)
+    {
+        var result = await _departmentsService.RemoveLocation(departmentId, locationId, cancellationToken);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
+
+    [HttpPatch]
+    public async Task<IActionResult> UpdateDepartment([FromBody] UpdateDepartmentDto department, CancellationToken cancellation)
+    {
+        var result = await _departmentsService.Update(department, cancellation);
+
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
+
     [HttpPut("{departmentId:guid}")]
     public async Task<IActionResult> Update([FromRoute] Guid departmentId, [FromBody] UpdateDepartmentDto department, CancellationToken cancellation)
     {

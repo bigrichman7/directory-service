@@ -29,10 +29,21 @@ public class EFCoreLocationsRepository : ILocationsRepository
         return location.Id.Value;
     }
 
-    public async Task<Result<Guid, Error>> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Location> UpdateAsync(Location location, CancellationToken cancellationToken)
+    {
+        _dbContext.Locations.Update(location);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Локация с Id {LocationId} обновлена", location.Id.Value);
+
+        return location;
+    }
+
+    public async Task<Result<Location, Error>> GetByIdAsync(LocationId id, CancellationToken cancellationToken)
     {
         var location = await _dbContext.Locations
-            .FirstOrDefaultAsync(x => x.Id == new LocationId(id), cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
         if (location is null)
         {
@@ -40,7 +51,7 @@ public class EFCoreLocationsRepository : ILocationsRepository
             return Error.NotFound("directory.location.not_found", $"Локация с Id {id} не найдена");
         }
 
-        return location.Id.Value;
+        return location;
     }
 
     public async Task<Result<List<Location>, Error>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
