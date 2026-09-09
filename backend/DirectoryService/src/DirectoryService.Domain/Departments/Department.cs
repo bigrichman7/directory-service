@@ -25,7 +25,7 @@ public sealed class Department
     public DepartmentId Id { get; } = null!;
     public DepartmentId? ParentId { get; private set; }
 
-    public Department Parent {  get; private set; } = null!;
+    public Department Parent { get; private set; } = null!;
     public Name Name { get; private set; } = null!;
     public Slug Slug { get; private set; } = null!;
 
@@ -71,4 +71,27 @@ public sealed class Department
             DateTime.UtcNow);
     }
 
+    public Result<DepartmentId, DomainError> UpdateName(string name)
+    {
+        var nameResult = Name.Create(name);
+        if (nameResult.IsFailure)
+            return nameResult.Error;
+
+        Name = nameResult.Value;
+        UpdatedAt = DateTime.UtcNow;
+
+        return Id;
+    }
+
+    public Result<DepartmentId, DomainError> UpdateSlug(string slug)
+    {
+        var slugResult = Slug.Create(slug);
+        if (slugResult.IsFailure)
+            return slugResult.Error;
+
+        Slug = slugResult.Value;
+        UpdatedAt = DateTime.UtcNow;
+
+        return Id;
+    }
 }

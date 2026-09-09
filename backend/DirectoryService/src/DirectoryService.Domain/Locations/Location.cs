@@ -52,4 +52,30 @@ public sealed class Location
 
         return location;
     }
+
+    public Result<Location, DomainError> UpdateName(string name)
+    {
+        var nameResult = Name.Create(name);
+
+        if (nameResult.IsFailure)
+            return nameResult.Error;
+
+        Name = nameResult.Value;
+        UpdatedAt = DateTime.UtcNow;
+
+        return this;
+    }
+
+    public Result<Location, DomainError> UpdateAddress(string city, string street, string house, string apartment)
+    {
+        var addressResult = Address.Create(city, street, house, apartment);
+
+        if (addressResult.IsFailure)
+            return addressResult.Error;
+
+        Address = addressResult.Value;
+        UpdatedAt = DateTime.UtcNow;
+
+        return this;
+    }
 }

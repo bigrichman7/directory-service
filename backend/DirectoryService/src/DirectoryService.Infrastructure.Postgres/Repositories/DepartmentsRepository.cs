@@ -1,13 +1,11 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Core.Departments;
 using DirectoryService.Domain.Departments;
+using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.ValueObjects;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DirectoryService.Infrastructure.Postgres.Repositories;
 
@@ -27,6 +25,13 @@ public class DepartmentsRepository : IDepartmentsRepository
         await _dbContext.Departments.AddAsync(department, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Новый отдел с Id {DepartmentId} добавлен", department.Id.Value);
+        return department.Id.Value;
+    }
+
+    public async Task<Guid> UpdateAsync(Department department, CancellationToken cancellationToken)
+    {
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Отдел с Id {DepartmentId} обновлен", department.Id.Value);
         return department.Id.Value;
     }
 
@@ -57,7 +62,7 @@ public class DepartmentsRepository : IDepartmentsRepository
         return department.Id.Value;
     }
 
-    public async Task<Result<Guid, Error>> GetByIdAsync(DepartmentId id, CancellationToken cancellationToken)
+    public async Task<Result<Department, Error>> GetByIdAsync(DepartmentId id, CancellationToken cancellationToken)
     {
         var department = await _dbContext.Departments
             .Where(x => x.Id == id)
@@ -69,7 +74,7 @@ public class DepartmentsRepository : IDepartmentsRepository
             return Error.NotFound("directory.department.not_found", $"Отдел с Id {id} не найден");
         }
 
-        return department.Id.Value;
+        return department;
     }
 
     public async Task<Result<Guid, Error>> GetByNameAsync(Name name, CancellationToken cancellationToken)
@@ -121,5 +126,46 @@ public class DepartmentsRepository : IDepartmentsRepository
         }
 
         return department.Path;
+    }
+
+    public async Task<Result<DepartmentLocation, Error>> AddDepartmentLocationAsync(DepartmentLocation departmentLocation, CancellationToken cancellationToken)
+    {
+        var existingDepartmentLocation = await _dbContext.DepartmentLocations
+            .Where(dl => dl.DepartmentId == departmentLocation.DepartmentId && dl.LocationId == departmentLocation.LocationId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (existingDepartmentLocation is not null)
+        {
+            _logger.LogError("Связь отдела с Id {DepartmentId} и локации с Id {LocationId} уже существует", departmentLocation.DepartmentId, departmentLocation.LocationId);
+            return Error.Conflict("directory.department_location.already_exists", $"Связь отдела с Id {departmentLocation.DepartmentId} и локации с Id {departmentLocation.LocationId} уже существует");
+        }
+
+        await _dbContext.DepartmentLocations.AddAsync(departmentLocation, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Связь отдела с Id {DepartmentId} и локации с Id {LocationId} добавлена", departmentLocation.DepartmentId, departmentLocation.LocationId);
+
+        return departmentLocation;
+    }
+
+    public async Task<Result<DepartmentLocation, Error>> RemoveDepartmentLocationAsync(DepartmentId departmentId, LocationId locationId, CancellationToken cancellationToken)
+    {
+        var existingDepartmentLocation = await _dbContext.DepartmentLocations
+            .Where(dl => dl.DepartmentId == departmentId && dl.LocationId == locationId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (existingDepartmentLocation is null)
+        {
+            _logger.LogError("Связь отдела с Id {DepartmentId} и локации с Id {LocationId} не найдена", departmentId, locationId);
+            return Error.NotFound("directory.department_location.not_found", $"Связь отдела с Id {departmentId} и локации с Id {locationId} не найдена");
+        }
+
+        _dbContext.DepartmentLocations.Remove(existingDepartmentLocation);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Связь отдела с Id {DepartmentId} и локации с Id {LocationId} удалена", departmentId, locationId);
+
+        return existingDepartmentLocation;
     }
 }
