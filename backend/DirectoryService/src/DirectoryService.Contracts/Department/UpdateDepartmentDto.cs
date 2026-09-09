@@ -1,3 +1,3 @@
 ﻿namespace DirectoryService.Contracts.Department;
 
-public record UpdateDepartmentDto(Guid Id, string? Name, string? Slug, Guid? ParentId);
+public record UpdateDepartmentDto(string? Name, string? Slug, Guid? ParentId);

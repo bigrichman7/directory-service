@@ -77,19 +77,19 @@ public class DepartmentsService : IDepartmentsService
         return department.Id.Value;
     }
 
-    public async Task<Result<DepartmentResponse, Error>> Update(UpdateDepartmentDto departmentDto, CancellationToken cancellationToken)
+    public async Task<Result<DepartmentResponse, Error>> Update(Guid departmentId, UpdateDepartmentDto departmentDto, CancellationToken cancellationToken)
     {
-        var existingDepartmentResult = await _departmentsRepository.GetByIdAsync(new DepartmentId(departmentDto.Id), cancellationToken);
+        var existingDepartmentResult = await _departmentsRepository.GetByIdAsync(new DepartmentId(departmentId), cancellationToken);
         if (existingDepartmentResult.IsFailure)
         {
-            _logger.LogError("Подразделение с Id {DepartmentId} не найдено.", departmentDto.Id);
-            return Error.Failure("directoryservice.department.not_found", $"Подразделение с Id {departmentDto.Id} не найдено.");
+            _logger.LogError("Подразделение с Id {DepartmentId} не найдено.", departmentId);
+            return Error.Failure("directoryservice.department.not_found", $"Подразделение с Id {departmentId} не найдено.");
         }
         var existingDepartment = existingDepartmentResult.Value;
 
         if (departmentDto.Name == null && departmentDto.Slug == null)
         {
-            _logger.LogError("Нет полей для обновления подразделения с Id {DepartmentId}.", departmentDto.Id);
+            _logger.LogError("Нет полей для обновления подразделения с Id {DepartmentId}.", departmentId);
             return Error.Failure("directoryservice.department.no_fields_to_update", "Нет полей для обновления.");
         }
 
@@ -98,7 +98,7 @@ public class DepartmentsService : IDepartmentsService
             var updateNameResult = existingDepartment.UpdateName(departmentDto.Name);
             if (updateNameResult.IsFailure)
             {
-                _logger.LogError("Ошибка при обновлении имени подразделения с Id {DepartmentId}: {ErrorMessage}", departmentDto.Id, updateNameResult.Error.Message);
+                _logger.LogError("Ошибка при обновлении имени подразделения с Id {DepartmentId}: {ErrorMessage}", departmentId, updateNameResult.Error.Message);
                 return Error.Failure(updateNameResult.Error.Code, updateNameResult.Error.Message);
             }
         }
@@ -108,7 +108,7 @@ public class DepartmentsService : IDepartmentsService
             var updateSlugResult = existingDepartment.UpdateSlug(departmentDto.Slug);
             if (updateSlugResult.IsFailure)
             {
-                _logger.LogError("Ошибка при обновлении slug подразделения с Id {DepartmentId}: {ErrorMessage}", departmentDto.Id, updateSlugResult.Error.Message);
+                _logger.LogError("Ошибка при обновлении slug подразделения с Id {DepartmentId}: {ErrorMessage}", departmentId, updateSlugResult.Error.Message);
                 return Error.Failure(updateSlugResult.Error.Code, updateSlugResult.Error.Message);
             }
         }

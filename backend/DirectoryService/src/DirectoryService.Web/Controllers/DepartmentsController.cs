@@ -58,10 +58,10 @@ public class DepartmentsController : ControllerBase
         return Ok(result.Value);
     }
 
-    [HttpPatch]
-    public async Task<IActionResult> UpdateDepartment([FromBody] UpdateDepartmentDto department, CancellationToken cancellation)
+    [HttpPatch("{departmentId:guid}")]
+    public async Task<IActionResult> UpdateDepartment([FromRoute] Guid departmentId, [FromBody] UpdateDepartmentDto departmentDto, CancellationToken cancellation)
     {
-        var result = await _departmentsService.Update(department, cancellation);
+        var result = await _departmentsService.Update(departmentId, departmentDto, cancellation);
 
         if (result.IsFailure)
             return BadRequest(result.Error);
@@ -70,7 +70,7 @@ public class DepartmentsController : ControllerBase
     }
 
     [HttpPut("{departmentId:guid}")]
-    public async Task<IActionResult> Update([FromRoute] Guid departmentId, [FromBody] UpdateDepartmentDto department, CancellationToken cancellation)
+    public async Task<IActionResult> Update([FromRoute] Guid departmentId, [FromBody] UpdateDepartmentDto departmentDto, CancellationToken cancellation)
     {
         return Ok("Department updated");
     }

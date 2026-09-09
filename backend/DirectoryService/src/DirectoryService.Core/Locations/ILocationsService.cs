@@ -9,5 +9,5 @@ public interface ILocationsService
 {
     Task<Guid> Create(CreateLocationDto locationDto, CancellationToken cancellationToken);
 
-    Task<Result<Location, Error>> Update(UpdateLocationDto locationDto, CancellationToken cancellationToken);
+    Task<Result<LocationResponse, Error>> Update(Guid locationId, UpdateLocationDto locationDto, CancellationToken cancellationToken);
 }

@@ -29,10 +29,10 @@ public class LocationsController : ControllerBase
         return Ok(locationId);
     }
 
-    [HttpPatch]
-    public async Task<IActionResult> Update([FromBody] UpdateLocationDto location, CancellationToken cancellationToken)
+    [HttpPatch("{locationId:guid}")]
+    public async Task<IActionResult> UpdateLocation([FromRoute] Guid locationId, [FromBody] UpdateLocationDto location, CancellationToken cancellationToken)
     {
-        var locationResult = await _locationService.Update(location, cancellationToken);
+        var locationResult = await _locationService.Update(locationId, location, cancellationToken);
         if (locationResult.IsFailure)
         {
             return BadRequest(locationResult.Error);
