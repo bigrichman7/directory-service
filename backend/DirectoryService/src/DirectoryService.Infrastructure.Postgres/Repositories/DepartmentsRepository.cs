@@ -30,7 +30,6 @@ public class DepartmentsRepository : IDepartmentsRepository
 
     public async Task<Guid> UpdateAsync(Department department, CancellationToken cancellationToken)
     {
-        _dbContext.Departments.Update(department);
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Отдел с Id {DepartmentId} обновлен", department.Id.Value);
         return department.Id.Value;

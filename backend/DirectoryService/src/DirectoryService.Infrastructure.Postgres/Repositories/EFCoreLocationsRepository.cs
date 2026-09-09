@@ -31,7 +31,6 @@ public class EFCoreLocationsRepository : ILocationsRepository
 
     public async Task<Location> UpdateAsync(Location location, CancellationToken cancellationToken)
     {
-        _dbContext.Locations.Update(location);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
