@@ -196,7 +196,7 @@ public class DepartmentsService(
                 departmentId,
                 locationId);
 
-            throw new DepartmentConflictException(Errors.DepartmentExceptions.Conflict($"Связь отдела с Id {departmentId} и локации с Id {locationId} не существует."));
+            throw new DepartmentNotFoundException(Errors.DepartmentExceptions.NotFound($"Связь отдела с Id {departmentId} и локации с Id {locationId} не существует."));
         }
 
         var departmentLocationResponse = new DepartmentLocationResponse(

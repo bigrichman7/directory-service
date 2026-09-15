@@ -60,7 +60,7 @@ public class LocationsService : ILocationsService
         if (locationDto.Name == null && locationDto.City == null && locationDto.Street == null && locationDto.House == null && locationDto.Apartment == null)
         {
             _logger.LogWarning("Нет данных для обновления локации с id {LocationId}", locationId);
-            throw new LocationBadRequestException(Errors.Validations.InvalidData(locationDto.ToString()));
+            throw new LocationBadRequestException(Errors.Validations.InvalidData("Нет данных для обновления"));
         }
 
         var existingLocationResult = await _locationsRepository.GetByIdAsync(new LocationId(locationId), cancellationToken);

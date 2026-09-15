@@ -47,7 +47,7 @@ public class ExceptionMiddleware
                 StatusCodes.Status409Conflict, JsonSerializer.Deserialize<Error[]>(exception.Message)),
 
             _ => (
-                StatusCodes.Status500InternalServerError, [Error.Failure(code: null, "Something went wrong.")]),
+                StatusCodes.Status500InternalServerError, [Error.Failure(code: null, "Внутренняя ошибка сервера")]),
         };
 
         context.Response.ContentType = "application/json";

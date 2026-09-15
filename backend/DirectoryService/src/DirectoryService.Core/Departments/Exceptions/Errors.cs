@@ -10,6 +10,10 @@ public static partial class Errors
             Error.NotFound(
                 code: "department.not_found",
                 message: $"Отдел с идентификатором '{id}' не найден.");
+        public static Error NotFound(string message) =>
+            Error.NotFound(
+                code: "department.not_found",
+                message: message);
         public static Error Conflict(string message, string? invalidField = null) =>
             Error.Conflict(
                 code: "department.conflict",

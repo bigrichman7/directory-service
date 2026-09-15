@@ -23,13 +23,13 @@ public sealed class DepartmentPosition
 
     public Department Department { get; private set; } = null!;
 
-    public static Result<DepartmentPosition, Failure> Create(DepartmentId departmentId, PositionId positionId)
+    public static Result<DepartmentPosition, Error> Create(DepartmentId departmentId, PositionId positionId)
     {
         if (departmentId.Value == Guid.Empty)
-            return Error.Validation("DepartmentId", "DepartmentId не может быть пустым").ToFailure();
+            return Error.Validation("departmentId.is_empty", "DepartmentId не может быть пустым");
 
         if (positionId.Value == Guid.Empty)
-            return Error.Validation("PositionId", "PositionId не может быть пустым").ToFailure();
+            return Error.Validation("positionId.is_empty", "PositionId не может быть пустым");
 
         return new DepartmentPosition(new DepartmentPositionId(Guid.CreateVersion7()), departmentId, positionId);
     }
