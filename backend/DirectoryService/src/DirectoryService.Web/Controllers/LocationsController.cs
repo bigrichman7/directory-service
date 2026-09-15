@@ -33,12 +33,8 @@ public class LocationsController : ControllerBase
     public async Task<IActionResult> UpdateLocation([FromRoute] Guid locationId, [FromBody] UpdateLocationDto location, CancellationToken cancellationToken)
     {
         var locationResult = await _locationService.Update(locationId, location, cancellationToken);
-        if (locationResult.IsFailure)
-        {
-            return BadRequest(locationResult.Error);
-        }
 
-        return Ok(locationResult.Value);
+        return Ok(locationResult);
     }
 
     [HttpPut("{locationId:guid}")]

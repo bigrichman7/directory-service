@@ -1,36 +1,33 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Contracts.Department;
+using DirectoryService.Core.Exceptions;
+using DirectoryService.Core.Departments.Exceptions;
+using DirectoryService.Core.Locations.Exceptions;
 using DirectoryService.Core.Locations;
-using DirectoryService.Domain.Common.Errors;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.ValueObjects;
-using ErrorOr;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
+using Shared.Extensions;
 
 namespace DirectoryService.Core.Departments;
 
-public class DepartmentsService : IDepartmentsService
+public class DepartmentsService(
+    IDepartmentsRepository departmentsRepository,
+    ILocationsRepository locationsRepository,
+    IValidator<CreateDepartmentDto> validator,
+    ILogger<DepartmentsService> logger) : IDepartmentsService
 {
 
-    private readonly IDepartmentsRepository _departmentsRepository;
-    private readonly ILocationsRepository _locationsRepository;
-    private readonly IValidator<CreateDepartmentDto> _validator;
-    private readonly ILogger<DepartmentsService> _logger;
+    private readonly IDepartmentsRepository _departmentsRepository = departmentsRepository;
+    private readonly ILocationsRepository _locationsRepository = locationsRepository;
+    private readonly IValidator<CreateDepartmentDto> _validator = validator;
+    private readonly ILogger<DepartmentsService> _logger = logger;
 
-    public DepartmentsService(IDepartmentsRepository departmentsRepository, ILocationsRepository locationsRepository, IValidator<CreateDepartmentDto> validator, ILogger<DepartmentsService> logger)
+    public async Task<Guid> Create(CreateDepartmentDto departmentDto, CancellationToken cancellationToken)
     {
-        _departmentsRepository = departmentsRepository;
-        _locationsRepository = locationsRepository;
-        _validator = validator;
-        _logger = logger;
-    }
-    public async Task<Result<Guid, Error>> Create(CreateDepartmentDto departmentDto, CancellationToken cancellationToken)
-    {
-        var validationResult = await DepartmentDtoValidator(departmentDto, cancellationToken);
-        if (validationResult.IsFailure)
-            return validationResult.Error;
+        await DepartmentDtoValidator(departmentDto, cancellationToken);
 
         DepartmentId? parentId = null;
         Domain.ValueObjects.Path? parentPath = null;
@@ -38,12 +35,14 @@ public class DepartmentsService : IDepartmentsService
         if (departmentDto.ParentId != null)
         {
             parentId = new DepartmentId(departmentDto.ParentId.Value);
-            var pathResult = await GetParentPath(parentId, cancellationToken);
-            if (pathResult.IsFailure)
+            var parentDepartmentResult = await _departmentsRepository.GetByIdAsync(parentId, cancellationToken);
+            if (parentDepartmentResult == null)
             {
-                return Error.Failure(pathResult.Error.Code, pathResult.Error.Description);
+                _logger.LogError("Родительское подразделение с Id {ParentId} не найдено", departmentDto.ParentId);
+                throw new DepartmentNotFoundException(Errors.DepartmentExceptions.NotFound(departmentDto.ParentId.Value));
             }
-            parentPath = pathResult.Value;
+
+            parentPath = parentDepartmentResult.Path;
         }
 
         var departmentResult = Department.Create(
@@ -54,43 +53,36 @@ public class DepartmentsService : IDepartmentsService
 
         if (departmentResult.IsFailure)
         {
-            return Error.Failure(departmentResult.Error.Code, departmentResult.Error.Message);
+            throw new DepartmentBadRequestException(departmentResult.Error);
         }
 
         var department = departmentResult.Value;
 
-        var locationResult = await CreateDepartmentLocation(
+        var departmentLocations = await CreateDepartmentLocation(
             department.Id,
             departmentDto.LocationIds,
             isPrimary: !departmentDto.ParentId.HasValue,
             cancellationToken);
 
-        if (locationResult.IsFailure)
-        {
-            return Error.Failure(locationResult.Error.Code, locationResult.Error.Message);
-        }
-
-        var location = locationResult.Value;
-
-        await _departmentsRepository.AddDepartmentWithDepartmentLocationAsync(department, location, cancellationToken);
+        await _departmentsRepository.AddDepartmentWithDepartmentLocationAsync(department, departmentLocations, cancellationToken);
 
         return department.Id.Value;
     }
 
-    public async Task<Result<DepartmentResponse, Error>> Update(Guid departmentId, UpdateDepartmentDto departmentDto, CancellationToken cancellationToken)
+    public async Task<DepartmentResponse> Update(Guid departmentId, UpdateDepartmentDto departmentDto, CancellationToken cancellationToken)
     {
         var existingDepartmentResult = await _departmentsRepository.GetByIdAsync(new DepartmentId(departmentId), cancellationToken);
-        if (existingDepartmentResult.IsFailure)
+        if (existingDepartmentResult == null)
         {
             _logger.LogError("Подразделение с Id {DepartmentId} не найдено.", departmentId);
-            return Error.Failure("directoryservice.department.not_found", $"Подразделение с Id {departmentId} не найдено.");
+            throw new DepartmentNotFoundException(Errors.DepartmentExceptions.NotFound(departmentId));
         }
-        var existingDepartment = existingDepartmentResult.Value;
+        var existingDepartment = existingDepartmentResult;
 
         if (departmentDto.Name == null && departmentDto.Slug == null)
         {
             _logger.LogError("Нет полей для обновления подразделения с Id {DepartmentId}.", departmentId);
-            return Error.Failure("directoryservice.department.no_fields_to_update", "Нет полей для обновления.");
+            throw new DepartmentBadRequestException(Errors.General.Failure("Нет полей для обновления."));
         }
 
         if (departmentDto.Name != null)
@@ -98,8 +90,8 @@ public class DepartmentsService : IDepartmentsService
             var updateNameResult = existingDepartment.UpdateName(departmentDto.Name);
             if (updateNameResult.IsFailure)
             {
-                _logger.LogError("Ошибка при обновлении имени подразделения с Id {DepartmentId}: {ErrorMessage}", departmentId, updateNameResult.Error.Message);
-                return Error.Failure(updateNameResult.Error.Code, updateNameResult.Error.Message);
+                _logger.LogError("Ошибка при обновлении имени подразделения с Id {DepartmentId}: {ErrorMessage}", departmentId, updateNameResult.Error);
+                throw new DepartmentBadRequestException(updateNameResult.Error);
             }
         }
 
@@ -108,8 +100,8 @@ public class DepartmentsService : IDepartmentsService
             var updateSlugResult = existingDepartment.UpdateSlug(departmentDto.Slug);
             if (updateSlugResult.IsFailure)
             {
-                _logger.LogError("Ошибка при обновлении slug подразделения с Id {DepartmentId}: {ErrorMessage}", departmentId, updateSlugResult.Error.Message);
-                return Error.Failure(updateSlugResult.Error.Code, updateSlugResult.Error.Message);
+                _logger.LogError("Ошибка при обновлении slug подразделения с Id {DepartmentId}: {ErrorMessage}", departmentId, updateSlugResult.Error);
+                throw new DepartmentBadRequestException(updateSlugResult.Error);
             }
         }
 
@@ -128,20 +120,20 @@ public class DepartmentsService : IDepartmentsService
         return departmentResponse;
     }
 
-    public async Task<Result<DepartmentLocationResponse, Error>> AddLocation(Guid departmentId, Guid locationId, bool isPrimary, CancellationToken cancellationToken)
+    public async Task<DepartmentLocationResponse> AddLocation(Guid departmentId, Guid locationId, bool isPrimary, CancellationToken cancellationToken)
     {
         var departmentResult = await _departmentsRepository.GetByIdAsync(new DepartmentId(departmentId), cancellationToken);
-        if (departmentResult.IsFailure)
+        if (departmentResult == null)
         {
             _logger.LogError("Подразделение с Id {DepartmentId} не найдено.", departmentId);
-            return Error.Failure("directoryservice.department.not_found", $"Подразделение с Id {departmentId} не найдено.");
+            throw new DepartmentNotFoundException(Errors.DepartmentExceptions.NotFound(departmentId));
         }
 
         var locationResult = await _locationsRepository.GetByIdAsync(new LocationId(locationId), cancellationToken);
-        if (locationResult.IsFailure)
+        if (locationResult == null)
         {
             _logger.LogError("Локация с Id {LocationId} не найдена.", locationId);
-            return Error.Failure("directoryservice.location.not_found", $"Локация с Id {locationId} не найдена.");
+            throw new LocationNotFoundException(Errors.LocationExceptions.NotFound(locationId));
         }
 
         var departmentLocationResult = DepartmentLocation.Create(
@@ -151,17 +143,24 @@ public class DepartmentsService : IDepartmentsService
 
         if (departmentLocationResult.IsFailure)
         {
-            _logger.LogError("Ошибка при создании связи между подразделением с Id {DepartmentId} и локацией с Id {LocationId}: {ErrorMessage}", departmentId, locationId, departmentLocationResult.Error.Message);
-            return Error.Failure(departmentLocationResult.Error.Code, departmentLocationResult.Error.Message);
+            _logger.LogError(
+                "Ошибка при создании связи между подразделением с Id {DepartmentId} и локацией с Id {LocationId}:",
+                departmentId,
+                locationId);
+            throw new DepartmentBadRequestException(Errors.General.Failure("Не удалось создать связь между подразделением и локацией."));
         }
 
         var departmentLocation = departmentLocationResult.Value;
 
         var addLocationResult = await _departmentsRepository.AddDepartmentLocationAsync(departmentLocation, cancellationToken);
-        if (addLocationResult.IsFailure)
+        if (addLocationResult == null)
         {
-            _logger.LogError("Ошибка при добавлении связи между подразделением с Id {DepartmentId} и локацией с Id {LocationId}: {ErrorMessage}", departmentId, locationId, addLocationResult.Error.Description);
-            return Error.Failure(addLocationResult.Error.Code, addLocationResult.Error.Description);
+            _logger.LogError(
+                "Ошибка при добавлении связи между подразделением с Id {DepartmentId} и локацией с Id {LocationId}",
+                departmentId,
+                locationId);
+
+            throw new DepartmentConflictException(Errors.DepartmentExceptions.Conflict($"Связь отдела с Id {departmentId} и локации с Id {locationId} уже существует."));
         }
 
         var departmentLocationResponse = new DepartmentLocationResponse(
@@ -173,82 +172,68 @@ public class DepartmentsService : IDepartmentsService
         return departmentLocationResponse;
     }
 
-    public async Task<Result<DepartmentLocationResponse, Error>> RemoveLocation(Guid departmentId, Guid locationId, CancellationToken cancellationToken)
+    public async Task<DepartmentLocationResponse> RemoveLocation(Guid departmentId, Guid locationId, CancellationToken cancellationToken)
     {
         var departmentResult = await _departmentsRepository.GetByIdAsync(new DepartmentId(departmentId), cancellationToken);
-        if (departmentResult.IsFailure)
+        if (departmentResult == null)
         {
             _logger.LogError("Подразделение с Id {DepartmentId} не найдено.", departmentId);
-            return Error.Failure("directoryservice.department.not_found", $"Подразделение с Id {departmentId} не найдено.");
+            throw new DepartmentNotFoundException(Errors.DepartmentExceptions.NotFound(departmentId));
         }
 
         var locationResult = await _locationsRepository.GetByIdAsync(new LocationId(locationId), cancellationToken);
-        if (locationResult.IsFailure)
+        if (locationResult == null)
         {
             _logger.LogError("Локация с Id {LocationId} не найдена.", locationId);
-            return Error.Failure("directoryservice.location.not_found", $"Локация с Id {locationId} не найдена.");
+            throw new LocationNotFoundException(Errors.LocationExceptions.NotFound(locationId));
         }
 
         var removeLocationResult = await _departmentsRepository.RemoveDepartmentLocationAsync(new DepartmentId(departmentId), new LocationId(locationId), cancellationToken);
-        if (removeLocationResult.IsFailure)
+        if (removeLocationResult == null)
         {
-            _logger.LogError("Ошибка при удалении связи между подразделением с Id {DepartmentId} и локацией с Id {LocationId}: {ErrorMessage}", departmentId, locationId, removeLocationResult.Error.Description);
-            return Error.Failure(removeLocationResult.Error.Code, removeLocationResult.Error.Description);
+            _logger.LogError(
+                "Ошибка при удалении связи между подразделением с Id {DepartmentId} и локацией с Id {LocationId}",
+                departmentId,
+                locationId);
+
+            throw new DepartmentConflictException(Errors.DepartmentExceptions.Conflict($"Связь отдела с Id {departmentId} и локации с Id {locationId} не существует."));
         }
 
         var departmentLocationResponse = new DepartmentLocationResponse(
-            removeLocationResult.Value.Id.Value,
-            removeLocationResult.Value.DepartmentId.Value,
-            removeLocationResult.Value.LocationId.Value,
-            removeLocationResult.Value.IsPrimary);
+            removeLocationResult.Id.Value,
+            removeLocationResult.DepartmentId.Value,
+            removeLocationResult.LocationId.Value,
+            removeLocationResult.IsPrimary);
 
         return departmentLocationResponse;
     }
 
-    private async Task<Result<CreateDepartmentDto, Error>> DepartmentDtoValidator(CreateDepartmentDto dto, CancellationToken cancellationToken)
+    private async Task<CreateDepartmentDto> DepartmentDtoValidator(CreateDepartmentDto dto, CancellationToken cancellationToken)
     {
         var validationResult = await _validator.ValidateAsync(dto, cancellationToken);
         if (!validationResult.IsValid)
         {
-            _logger.LogError("Ошибка валидации: {Errors}", validationResult.Errors);
-            return Error.Failure("directoryservice.department.validation_failed", "Ошибка валидации CreateDepartmentDto.");
+            _logger.LogError("Ошибка валидации: {Errors}", validationResult.ToErrors());
+            throw new DepartmentBadRequestException(validationResult.ToErrors());
         }
 
         var nameExists = await _departmentsRepository.GetByNameAsync(Name.Create(dto.Name).Value, cancellationToken);
-        if (nameExists.IsSuccess)
+        if (nameExists != null)
         {
             _logger.LogError("Подразделение с именем {Name} уже существует.", dto.Name);
-            return Error.Failure("directoryservice.department.name_already_exists", $"Подразделение с именем {dto.Name} уже существует.");
+            throw new DepartmentConflictException(Errors.DepartmentExceptions.Conflict($"Подразделение с именем {dto.Name} уже существует.", "Name"));
         }
 
         var slugExists = await _departmentsRepository.GetBySlugAsync(Slug.Create(dto.Slug).Value, cancellationToken);
-        if (slugExists.IsSuccess)
+        if (slugExists != null)
         {
             _logger.LogError("Подразделение с slug {Slug} уже существует.", dto.Slug);
-            return Error.Failure("directoryservice.department.slug_already_exists", $"Подразделение с slug {dto.Slug} уже существует.");
+            throw new DepartmentConflictException(Errors.DepartmentExceptions.Conflict($"Подразделение с slug {dto.Slug} уже существует.", "Slug"));
         }
 
         return dto;
     }
-    private async Task<Result<Domain.ValueObjects.Path, Error>> GetParentPath(DepartmentId parentId, CancellationToken cancellation)
-    {
-        var parentResult = await _departmentsRepository.GetByIdAsync(new DepartmentId(parentId.Value), cancellation);
-        if (parentResult.IsFailure)
-        {
-            _logger.LogError("Родительское подразделение с Id {ParentId} не найдено.", parentId.Value);
-            return Error.Failure("directoryservice.department.parent_not_found", $"Родительское подразделение с Id {parentId} не найдено.");
-        }
-
-        var pathResult = await _departmentsRepository.GetPathByIdAsync(new DepartmentId(parentId.Value), cancellation);
-        if (pathResult.IsFailure)
-        {
-            _logger.LogError("Путь к родительскому подразделению с {ParentId} не найден", parentId.Value);
-            return Error.Failure("directoryservice.department.path_not_found", $"Путь к родительскому подразделению с {parentId} не найден");
-        }
-
-        return pathResult.Value;
-    }
-    private async Task<Result<IEnumerable<DepartmentLocation>, DomainError>> CreateDepartmentLocation(DepartmentId departmentId, IEnumerable<Guid>? locationIds, bool isPrimary, CancellationToken cancellationToken)
+    private async Task<IEnumerable<DepartmentLocation>> CreateDepartmentLocation(DepartmentId departmentId, IEnumerable<Guid>? locationIds, bool isPrimary, CancellationToken cancellationToken)
     {
         var departmentLocations = new List<DepartmentLocation>();
 
@@ -262,18 +247,13 @@ public class DepartmentsService : IDepartmentsService
             return departmentLocations;
 
         var locationResult = await _locationsRepository.GetByIdsAsync(locationIds, cancellationToken);
-        if (locationResult.IsFailure)
-            return GeneralErrors.ValueIsInvalid(locationResult.Error.Description);
+        if (locationResult == null)
+            throw new LocationNotFoundException(Errors.LocationExceptions.NotFound(locationIds));
 
-        var foundIds = locationResult.Value.Select(l => l.Id.Value).ToHashSet();
+        var foundIds = locationResult.Select(l => l.Id.Value).ToHashSet();
         var missingIds = idsList.Where(id => !foundIds.Contains(id)).ToList();
         if (missingIds.Count > 0)
-            return GeneralErrors.ValueIsInvalid($"Локации с ID {string.Join(", ", missingIds)} не найдены.");
-
-        if (locationResult.IsFailure)
-        {
-            return GeneralErrors.ValueIsInvalid($"Локация с ID {locationIds} не найдены.");
-        }
+            throw new LocationNotFoundException(Errors.LocationExceptions.NotFound(missingIds));
 
         foreach (var locationId in locationIds)
         {
@@ -284,7 +264,7 @@ public class DepartmentsService : IDepartmentsService
 
             if (departmentLocationResult.IsFailure)
             {
-                return GeneralErrors.ValueIsInvalid($"Не удалось создать связь между подразделением с ID {departmentId.Value} и локацией с ID {locationId}.");
+                throw new DepartmentBadRequestException(Errors.DepartmentExceptions.Failure($"Не удалось создать связь между подразделением с ID {departmentId.Value} и локацией с ID {locationId}."));
             }
 
             departmentLocations.Add(departmentLocationResult.Value);

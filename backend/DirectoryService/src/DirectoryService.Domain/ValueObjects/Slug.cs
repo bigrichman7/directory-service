@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using System.Text.RegularExpressions;
-using DirectoryService.Domain.Common.Errors;
+using Shared;
 
 namespace DirectoryService.Domain.ValueObjects;
 
@@ -13,21 +13,22 @@ public partial record Slug
 
     public string Value { get; }
 
-    public static Result<Slug, DomainError> Create(string value)
+    public static Result<Slug, Error> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return GeneralErrors.ValueIsRequired("Slug");
+            return Error.Validation("slug.is.required", "Требуется slug");
 
         var normalized = value.Trim().ToLowerInvariant();
 
         if (normalized.Length < MIN_LENGTH || normalized.Length > MAX_LENGTH)
         {
-            return GeneralErrors.ValueIsInvalid($"slug (от {MIN_LENGTH} до {MAX_LENGTH} символов)");
+            return Error.Validation("slug.invalid_length", $"slug (от {MIN_LENGTH} до {MAX_LENGTH} символов)");
         }
 
         if (!SlugPattern().IsMatch(normalized))
         {
-            return GeneralErrors.ValueIsInvalid(
+            return Error.Validation(
+                "slug.invalid_format",
                 "slug (только строчные латинские буквы, цифры и дефисы, " +
                 "не начинается и не заканчивается дефисом)");
         }

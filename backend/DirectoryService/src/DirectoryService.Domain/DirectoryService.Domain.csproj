@@ -3,4 +3,7 @@
     <PackageReference Include="CSharpFunctionalExtensions" />
     <PackageReference Include="ErrorOr" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
 </Project>

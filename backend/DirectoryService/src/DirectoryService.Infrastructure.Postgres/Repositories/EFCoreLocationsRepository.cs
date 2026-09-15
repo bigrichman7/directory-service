@@ -1,7 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Core.Locations;
 using DirectoryService.Domain.Locations;
-using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -39,48 +38,30 @@ public class EFCoreLocationsRepository : ILocationsRepository
         return location;
     }
 
-    public async Task<Result<Location, Error>> GetByIdAsync(LocationId id, CancellationToken cancellationToken)
+    public async Task<Location?> GetByIdAsync(LocationId id, CancellationToken cancellationToken)
     {
-        var location = await _dbContext.Locations
+        return await _dbContext.Locations
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-
-        if (location is null)
-        {
-            _logger.LogError("Локация с Id {LocationId} не найдена", id);
-            return Error.NotFound("directory.location.not_found", $"Локация с Id {id} не найдена");
-        }
-
-        return location;
     }
 
-    public async Task<Result<List<Location>, Error>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Location>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
     {
         var idsList = ids.Distinct().ToList();
         if (idsList.Count == 0)
         {
-            return new List<Location>();
+            return [];
         }
 
-        var locationIds = idsList.Select(id => new LocationId(id)).ToList();
+        var locationIds = idsList.ConvertAll(id => new LocationId(id));
 
-        var locations = await _dbContext.Locations
+        return await _dbContext.Locations
             .Where(x => locationIds.Contains(x.Id))
             .ToListAsync(cancellationToken);
-
-        return locations;
     }
 
-    public async Task<Result<Guid, Error>> GetByNameAsync(string name, CancellationToken cancellationToken)
+    public async Task<Location?> GetByNameAsync(string name, CancellationToken cancellationToken)
     {
-        var location = await _dbContext.Locations
+        return await _dbContext.Locations
             .FirstOrDefaultAsync(x => x.Name.Value == name, cancellationToken);
-
-        if (location is null)
-        {
-            _logger.LogError("Локация с именем {Name} не найдена", name);
-            return Error.NotFound("directory.location.not_found", $"Локация с именем {name} не найдена");
-        }
-
-        return location.Id.Value;
     }
 }
