@@ -247,8 +247,6 @@ public class DepartmentsService(
             return departmentLocations;
 
         var locationResult = await _locationsRepository.GetByIdsAsync(locationIds, cancellationToken);
-        if (locationResult == null)
-            throw new LocationNotFoundException(Errors.LocationExceptions.NotFound(locationIds));
 
         var foundIds = locationResult.Select(l => l.Id.Value).ToHashSet();
         var missingIds = idsList.Where(id => !foundIds.Contains(id)).ToList();
