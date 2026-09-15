@@ -1,7 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
-using System;
-using DirectoryService.Domain.Common.Errors;
 using DirectoryService.Domain.Locations;
+using Shared;
 
 namespace DirectoryService.Domain.Departments;
 
@@ -24,13 +23,13 @@ public sealed class DepartmentLocation
 
 	public bool IsPrimary { get; private set; }
 
-    public static Result<DepartmentLocation, DomainError> Create(DepartmentId departmentId, LocationId locationId, bool isPrimary = false)
+    public static Result<DepartmentLocation, Error> Create(DepartmentId departmentId, LocationId locationId, bool isPrimary = false)
     {
         if (departmentId.Value == Guid.Empty)
-            return GeneralErrors.ValueIsInvalid("DepartmentId не может быть пустым");
+            return Error.Validation("departmentId.is.empty", "DepartmentId не может быть пустым", "DepartmentId");
 
         if (locationId.Value == Guid.Empty)
-            return GeneralErrors.ValueIsInvalid("LocationId не может быть пустым");
+            return Error.Validation("locationId.is.empty", "LocationId не может быть пустым", "LocationId");
 
 
         return new DepartmentLocation(new DepartmentLocationId(Guid.CreateVersion7()), departmentId, locationId, isPrimary);

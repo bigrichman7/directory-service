@@ -1,7 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
-using System;
-using DirectoryService.Domain.Common.Errors;
 using DirectoryService.Domain.ValueObjects;
+using Shared;
 
 namespace DirectoryService.Domain.Positions;
 
@@ -28,7 +27,7 @@ public sealed class Position
 
     public ICollection<DepartmentPosition> DepartmentPositions { get; private set; } = new List<DepartmentPosition>();
 
-    public static Result<Position, DomainError> Create(string name)
+    public static Result<Position, Error> Create(string name)
     {
         var nameResult = ValueObjects.Name.Create(name);
         if (nameResult.IsFailure)

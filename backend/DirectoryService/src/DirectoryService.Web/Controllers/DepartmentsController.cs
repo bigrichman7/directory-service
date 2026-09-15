@@ -32,30 +32,23 @@ public class DepartmentsController : ControllerBase
     {
         var result = await _departmentsService.Create(department, cancellationToken);
 
-        if (result.IsFailure)
-            return BadRequest(result.Error);
-
-        return Ok(result.Value);
+        return Ok(result);
     }
 
     [HttpPost("{departmentId:guid}/locations/{locationId:guid}")]
     public async Task<IActionResult> AddLocationToDepartment([FromRoute] Guid departmentId, [FromRoute] Guid locationId, [FromBody] bool? isPrimary, CancellationToken cancellationToken)
     {
         var result = await _departmentsService.AddLocation(departmentId, locationId, isPrimary ?? false, cancellationToken);
-        if (result.IsFailure)
-            return BadRequest(result.Error);
 
-        return Ok(result.Value);
+        return Ok(result);
     }
 
     [HttpDelete("{departmentId:guid}/locations/{locationId:guid}")]
     public async Task<IActionResult> RemoveLocationFromDepartment([FromRoute] Guid departmentId, [FromRoute] Guid locationId, CancellationToken cancellationToken)
     {
         var result = await _departmentsService.RemoveLocation(departmentId, locationId, cancellationToken);
-        if (result.IsFailure)
-            return BadRequest(result.Error);
 
-        return Ok(result.Value);
+        return Ok(result);
     }
 
     [HttpPatch("{departmentId:guid}")]
@@ -63,10 +56,7 @@ public class DepartmentsController : ControllerBase
     {
         var result = await _departmentsService.Update(departmentId, departmentDto, cancellation);
 
-        if (result.IsFailure)
-            return BadRequest(result.Error);
-
-        return Ok(result.Value);
+        return Ok(result);
     }
 
     [HttpPut("{departmentId:guid}")]

@@ -1,9 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
-using DirectoryService.Domain.Common.Errors;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.ValueObjects;
-using ErrorOr;
-using System;
+using Shared;
 
 namespace DirectoryService.Domain.Locations;
 
@@ -33,7 +31,7 @@ public sealed class Location
 
     public ICollection<DepartmentLocation> DepartmentLocations { get; private set; } = new List<DepartmentLocation>();
 
-    public static Result<Location, DomainError> Create(string name, string city, string street, string house, string apartment)
+    public static Result<Location, Error> Create(string name, string city, string street, string house, string apartment)
     {
         var nameResult = Name.Create(name);
         if (nameResult.IsFailure)
@@ -53,7 +51,7 @@ public sealed class Location
         return location;
     }
 
-    public Result<Location, DomainError> UpdateName(string name)
+    public Result<Location, Error> UpdateName(string name)
     {
         var nameResult = Name.Create(name);
 
@@ -66,7 +64,7 @@ public sealed class Location
         return this;
     }
 
-    public Result<Location, DomainError> UpdateAddress(string city, string street, string house, string apartment)
+    public Result<Location, Error> UpdateAddress(string city, string street, string house, string apartment)
     {
         var addressResult = Address.Create(city, street, house, apartment);
 

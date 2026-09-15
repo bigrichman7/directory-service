@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
-using DirectoryService.Domain.Common.Errors;
 using DirectoryService.Domain.Positions;
 using DirectoryService.Domain.ValueObjects;
+using Shared;
 
 namespace DirectoryService.Domain.Departments;
 
@@ -39,7 +39,7 @@ public sealed class Department
 
     public ICollection<Department> Children { get; private set; } = new List<Department>();
 
-    public static Result<Department, DomainError> Create(string name, string slug, DepartmentId? parentId = null, ValueObjects.Path? parentPath = null)
+    public static Result<Department, Error> Create(string name, string slug, DepartmentId? parentId = null, ValueObjects.Path? parentPath = null)
     {
         var nameResult = Name.Create(name);
         if (nameResult.IsFailure)
@@ -55,7 +55,7 @@ public sealed class Department
         {
             return new Department(
             new DepartmentId(Guid.CreateVersion7()),
-            null,
+            parentId: null,
             nameResult.Value,
             slugResult.Value,
             pathResult.Value,
@@ -71,7 +71,7 @@ public sealed class Department
             DateTime.UtcNow);
     }
 
-    public Result<DepartmentId, DomainError> UpdateName(string name)
+    public Result<DepartmentId, Error> UpdateName(string name)
     {
         var nameResult = Name.Create(name);
         if (nameResult.IsFailure)
@@ -83,7 +83,7 @@ public sealed class Department
         return Id;
     }
 
-    public Result<DepartmentId, DomainError> UpdateSlug(string slug)
+    public Result<DepartmentId, Error> UpdateSlug(string slug)
     {
         var slugResult = Slug.Create(slug);
         if (slugResult.IsFailure)

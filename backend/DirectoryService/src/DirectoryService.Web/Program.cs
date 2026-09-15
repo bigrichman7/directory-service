@@ -1,5 +1,6 @@
 using DirectoryService.Infrastructure.Postgres;
 using DirectoryService.Web;
+using DirectoryService.Web.Middlewares;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
@@ -13,6 +14,8 @@ var connectionString = builder.Configuration.GetConnectionString("DirectoryServi
 builder.Services.AddDbContext<DirectoryServiceDbContext>(options => options.UseNpgsql(connectionString));
 
 WebApplication app = builder.Build();
+
+app.UseExceptionMiddleware();
 
 // Minimal API endpoints
 app.MapGet("/", () => "DirectoryService is running!");

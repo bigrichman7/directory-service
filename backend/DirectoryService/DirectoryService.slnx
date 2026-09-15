@@ -5,5 +5,6 @@
     <Project Path="src/DirectoryService.Domain/DirectoryService.Domain.csproj" />
     <Project Path="src/DirectoryService.Infrastructure.Postgres/DirectoryService.Infrastructure.Postgres.csproj" />
     <Project Path="src/DirectoryService.Web/DirectoryService.Web.csproj" />
+    <Project Path="src/Shared/Shared.csproj" Id="61d5585d-e19f-4cb9-8407-fba0af5aa2f9" />
   </Folder>
 </Solution>

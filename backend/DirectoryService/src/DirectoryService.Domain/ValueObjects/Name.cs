@@ -1,5 +1,5 @@
 using CSharpFunctionalExtensions;
-using DirectoryService.Domain.Common.Errors;
+using Shared;
 
 namespace DirectoryService.Domain.ValueObjects;
 
@@ -15,21 +15,21 @@ public sealed record Name
         Value = value;
     }
 
-    public static Result<Name, DomainError> Create(string value)
+    public static Result<Name, Error> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-         return GeneralErrors.ValueIsRequired("Name of Department");
+         return Error.Validation("name.is.required", "Требуется название");
 
         var normalized = value.Trim();
 
         if (normalized.Length < MIN_LENGTH)
-            return GeneralErrors.ValueIsInvalid($"Название локации должно содержать минимум {MIN_LENGTH} символа");
+            return Error.Validation("name.invalid_length", $"Название локации должно содержать минимум {MIN_LENGTH} символа");
 
         if (normalized.Length > MAX_LENGTH)
-            return GeneralErrors.ValueIsInvalid($"Название локации не должно превышать {MAX_LENGTH} символов");
+            return Error.Validation("name.too_long", $"Название локации не должно превышать {MAX_LENGTH} символов");
 
         if (normalized.Any(c => char.IsControl(c)))
-            return GeneralErrors.ValueIsInvalid("Название локации не должно содержать управляющих символов");
+            return Error.Validation("name.invalid_format", "Название локации не должно содержать управляющих символов");
 
         return new Name(normalized);
     }

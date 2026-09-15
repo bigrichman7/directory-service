@@ -1,5 +1,5 @@
 using CSharpFunctionalExtensions;
-using DirectoryService.Domain.Common.Errors;
+using Shared;
 
 namespace DirectoryService.Domain.ValueObjects;
 
@@ -23,7 +23,7 @@ public sealed record Address
         Apartment = apartment;
     }
 
-    public static Result<Address, DomainError> Create(string city, string street, string house, string apartment)
+    public static Result<Address, Error> Create(string city, string street, string house, string apartment)
     {
         var cityResult = ValidAttribute(city, "City");
         if (cityResult.IsFailure)
@@ -48,23 +48,29 @@ public sealed record Address
         return new Address(normalizedCity, normalizedStreet, normalizedHouse, normalizedApartment);
     }
 
-    private static Result<string, DomainError> ValidAttribute(string attribute, string fieldName)
+    private static Result<string, Error> ValidAttribute(string attribute, string fieldName)
     {
         if (string.IsNullOrWhiteSpace(attribute))
         {
-            return GeneralErrors.ValueIsRequired($"Не задан параметр {fieldName}");
+            return Error.Validation($"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.is.required", $"Не задан параметр {fieldName}");
         }
 
         var normalized = attribute.Trim();
 
         if (normalized.Length < MIN_LENGTH)
-            return GeneralErrors.ValueIsInvalid($"Адрес {fieldName} должен содержать минимум {MIN_LENGTH} символа");
+            return Error.Validation(
+                $"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.invalid_length", 
+                $"Адрес {fieldName} должен содержать минимум {MIN_LENGTH} символа");
 
         if (normalized.Length > MAX_LENGTH)
-            return GeneralErrors.ValueIsInvalid($"Адрес {fieldName} не должен превышать {MAX_LENGTH} символов");
+            return Error.Validation(
+                $"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.too_long", 
+                $"Адрес {fieldName} не должен превышать {MAX_LENGTH} символов");
 
         if (normalized.Any(c => char.IsControl(c)))
-            return GeneralErrors.ValueIsInvalid($"Адрес {fieldName} не должен содержать управляющих символов");
+            return Error.Validation(
+                $"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.invalid_format", 
+                $"Адрес {fieldName} не должен содержать управляющих символов");
 
         return normalized;
     }
