@@ -251,6 +251,11 @@ public class DepartmentsService(
             return departmentLocations;
 
         var locationResult = await _locationsRepository.GetByIdsAsync(locationIds, cancellationToken);
+        if (locationResult.IsFailure)
+        {
+            _logger.LogError("Ошибка при получении локаций: {ErrorMessage}", locationResult.Error);
+            return locationResult.Error;
+        }
 
         var location = locationResult.Value;
 

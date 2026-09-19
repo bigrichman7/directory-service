@@ -1,7 +1,7 @@
 ﻿using DirectoryService.Contracts.Department;
 using DirectoryService.Core.Departments;
 using Microsoft.AspNetCore.Mvc;
-using Shared;
+using Shared.ResponseExtensions;
 
 namespace DirectoryService.Web.Controllers;
 

@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Shared;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
-namespace DirectoryService.Web;
+namespace Shared.ResponseExtensions;
 
-public static class ResponseExtensions
+public static class ResponseExtension
 {
     public static IActionResult ToResponse(this Failure failure)
     {
