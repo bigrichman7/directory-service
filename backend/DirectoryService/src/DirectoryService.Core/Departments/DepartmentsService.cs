@@ -182,14 +182,14 @@ public class DepartmentsService(
         if (departmentResult.IsFailure)
         {
             _logger.LogError("Подразделение с Id {DepartmentId} не найдено.", departmentId);
-            return Errors.General.NotFound(departmentId);
+            return Errors.DepartmentExceptions.NotFound(departmentId);
         }
 
         var locationResult = await _locationsRepository.GetByIdAsync(new LocationId(locationId), cancellationToken);
         if (locationResult.IsFailure)
         {
             _logger.LogError("Локация с Id {LocationId} не найдена.", locationId);
-            return Errors.General.NotFound(locationId);
+            return Errors.DepartmentExceptions.NotFound(locationId);
         }
 
         var removeLocationResult = await _departmentsRepository.RemoveDepartmentLocationAsync(new DepartmentId(departmentId), new LocationId(locationId), cancellationToken);
