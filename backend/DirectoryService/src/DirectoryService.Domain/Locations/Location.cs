@@ -29,7 +29,7 @@ public sealed class Location
 
 	public DateTime UpdatedAt { get; private set; }
 
-    public ICollection<DepartmentLocation> DepartmentLocations { get; private set; } = new List<DepartmentLocation>();
+    public ICollection<DepartmentLocation> DepartmentLocations { get; private set; } = [];
 
     public static Result<Location, Error> Create(string name, string city, string street, string house, string apartment)
     {

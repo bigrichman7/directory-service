@@ -6,11 +6,11 @@ namespace DirectoryService.Core.Departments;
 
 public interface IDepartmentsService
 {
-    Task<Guid> Create(CreateDepartmentDto departmentDto, CancellationToken cancellationToken);
+    Task<Result<Guid, Error>> Create(CreateDepartmentDto departmentDto, CancellationToken cancellationToken);
 
-    Task<DepartmentLocationResponse> AddLocation(Guid departmentId, Guid locationId, bool isPrimary, CancellationToken cancellationToken);
+    Task<Result<DepartmentLocationResponse, Error>> AddLocation(Guid departmentId, Guid locationId, bool isPrimary, CancellationToken cancellationToken);
 
-    Task<DepartmentResponse> Update(Guid departmentId, UpdateDepartmentDto departmentDto, CancellationToken cancellationToken);
+    Task<Result<DepartmentResponse, Error>> Update(Guid departmentId, UpdateDepartmentDto departmentDto, CancellationToken cancellationToken);
 
-    Task<DepartmentLocationResponse> RemoveLocation(Guid departmentId, Guid locationId, CancellationToken cancellationToken);
+    Task<Result<DepartmentLocationResponse, Error>> RemoveLocation(Guid departmentId, Guid locationId, CancellationToken cancellationToken);
 }

@@ -4,6 +4,6 @@ namespace Shared.Extensions;
 
 public static class ValidationExtensions
 {
-    public static Error[] ToErrors(this ValidationResult validationResult) =>
-        validationResult.Errors.Select(e => Error.Validation(e.ErrorCode, e.ErrorMessage, e.PropertyName)).ToArray();
+    public static Error ToErrors(this ValidationResult validationResult) =>
+        Error.Validation([.. validationResult.Errors.Select(e => new ErrorMessages(e.ErrorCode, e.ErrorMessage, e.PropertyName))]);
 }

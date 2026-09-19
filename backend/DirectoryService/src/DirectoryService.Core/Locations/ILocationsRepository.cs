@@ -1,4 +1,6 @@
-﻿using DirectoryService.Domain.Locations;
+﻿using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Locations;
+using Shared;
 
 
 namespace DirectoryService.Core.Locations;
@@ -9,9 +11,9 @@ public interface ILocationsRepository
 
     Task<Location> UpdateAsync(Location location, CancellationToken cancellationToken);
 
-    Task<Location?> GetByNameAsync(string name, CancellationToken cancellationToken);
+    Task<Result<Location, Error>> GetByNameAsync(string name, CancellationToken cancellationToken);
 
-    Task<Location?> GetByIdAsync(LocationId id, CancellationToken cancellationToken);
+    Task<Result<Location, Error>> GetByIdAsync(LocationId id, CancellationToken cancellationToken);
 
-    Task<IEnumerable<Location>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken);
+    Task<Result<IEnumerable<Location>, Error>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken);
 }

@@ -10,30 +10,27 @@ using Shared.Extensions;
 
 namespace DirectoryService.Core.Locations;
 
-public class LocationsService : ILocationsService
+public class LocationsService(
+    ILocationsRepository locationsRepository,
+    IValidator<CreateLocationDto> validator,
+    ILogger<LocationsService> logger) : ILocationsService
 {
-    private readonly ILocationsRepository _locationsRepository;
-    private readonly IValidator<CreateLocationDto> _validator;
-    private readonly ILogger<LocationsService> _logger;
-    public LocationsService(ILocationsRepository locationsRepository, IValidator<CreateLocationDto> validator, ILogger<LocationsService> logger)
-    {
-        _locationsRepository = locationsRepository;
-        _validator = validator;
-        _logger = logger;
-    }
+    private readonly ILocationsRepository _locationsRepository = locationsRepository;
+    private readonly IValidator<CreateLocationDto> _validator = validator;
+    private readonly ILogger<LocationsService> _logger = logger;
 
-    public async Task<Guid> Create(CreateLocationDto locationDto, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Error>> Create(CreateLocationDto locationDto, CancellationToken cancellationToken)
     {
         var validationResult = await _validator.ValidateAsync(locationDto, cancellationToken);
         if (!validationResult.IsValid)
         {
-            throw new LocationBadRequestException(validationResult.ToErrors());
+            return validationResult.ToErrors();
         }
 
         var checkName = await _locationsRepository.GetByNameAsync(locationDto.Name, cancellationToken);
-        if (checkName != null)
+        if (checkName.IsSuccess)
         {
-            throw new LocationConflictException(Errors.LocationExceptions.Conflict($"Локация с именем {locationDto.Name} уже существует.", "Name"));
+            return Errors.LocationExceptions.Conflict($"Локация с именем {locationDto.Name} уже существует.", "Name");
         }
 
         var location = Location.Create(
@@ -45,32 +42,33 @@ public class LocationsService : ILocationsService
 
         if (location.IsFailure)
         {
-            throw new LocationBadRequestException(location.Error);
+            return location.Error;
         }
         
         await _locationsRepository.AddAsync(location.Value, cancellationToken);
 
-        _logger.LogInformation("Location created with id {LocationId}", location.Value.Id.Value);
+        var newLocationId = location.Value.Id.Value;
+        _logger.LogInformation("Локация с Id {NewLocationId} создана", newLocationId);
 
-        return location.Value.Id.Value;
+        return newLocationId;
     }
 
-    public async Task<LocationResponse> Update(Guid locationId, UpdateLocationDto locationDto, CancellationToken cancellationToken)
+    public async Task<Result<LocationResponse, Error>> Update(Guid locationId, UpdateLocationDto locationDto, CancellationToken cancellationToken)
     {
         if (locationDto.Name == null && locationDto.City == null && locationDto.Street == null && locationDto.House == null && locationDto.Apartment == null)
         {
             _logger.LogWarning("Нет данных для обновления локации с id {LocationId}", locationId);
-            throw new LocationBadRequestException(Errors.Validations.InvalidData("Нет данных для обновления"));
+            return Errors.Validations.InvalidData("Нет данных для обновления");
         }
 
         var existingLocationResult = await _locationsRepository.GetByIdAsync(new LocationId(locationId), cancellationToken);
-        if (existingLocationResult == null)
+        if (existingLocationResult.IsFailure)
         {
             _logger.LogError("Локация с id {LocationId} не найдена", locationId);
-            throw new LocationNotFoundException(Errors.LocationExceptions.NotFound(locationId));
+            return Errors.LocationExceptions.NotFound(locationId);
         }
 
-        var existingLocation = existingLocationResult;
+        var existingLocation = existingLocationResult.Value;
 
         if (locationDto.Name is not null)
         {
@@ -78,7 +76,7 @@ public class LocationsService : ILocationsService
             if (updateNameResult.IsFailure)
             {
                 _logger.LogError("Ошибка при обновлении имени локации с id {LocationId}: {Error}", locationId, updateNameResult.Error);
-                throw new LocationBadRequestException(updateNameResult.Error);
+                return updateNameResult.Error;
             }
         }
 
@@ -91,7 +89,7 @@ public class LocationsService : ILocationsService
         if (updateAddressResult.IsFailure)
         {
             _logger.LogError("Ошибка при обновлении адреса локации с id {LocationId}: {Error}", locationId, updateAddressResult.Error);
-            throw new LocationBadRequestException(updateAddressResult.Error);
+            return updateAddressResult.Error;
         }
 
         await _locationsRepository.UpdateAsync(existingLocation, cancellationToken);

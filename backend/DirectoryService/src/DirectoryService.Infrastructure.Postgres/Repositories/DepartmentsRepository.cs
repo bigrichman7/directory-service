@@ -3,38 +3,35 @@ using DirectoryService.Core.Departments;
 using DirectoryService.Domain.Departments;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.ValueObjects;
+using DirectoryService.Infrastructure.Postgres.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using Shared;
 
 namespace DirectoryService.Infrastructure.Postgres.Repositories;
 
 public class DepartmentsRepository : IDepartmentsRepository
 {
     private readonly DirectoryServiceDbContext _dbContext;
-    private readonly ILogger<DepartmentsRepository> _logger;
 
-    public DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<DepartmentsRepository> logger)
+    public DepartmentsRepository(DirectoryServiceDbContext dbContext)
     {
         _dbContext = dbContext;
-        _logger = logger;
     }
 
     public async Task<Guid> AddAsync(Department department, CancellationToken cancellationToken)
     {
         await _dbContext.Departments.AddAsync(department, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Новый отдел с Id {DepartmentId} добавлен", department.Id.Value);
         return department.Id.Value;
     }
 
     public async Task<Guid> UpdateAsync(Department department, CancellationToken cancellationToken)
     {
         await _dbContext.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Отдел с Id {DepartmentId} обновлен", department.Id.Value);
         return department.Id.Value;
     }
 
-    public async Task<Guid?> AddDepartmentWithDepartmentLocationAsync(Department department, IEnumerable<DepartmentLocation> departmentLocations, CancellationToken cancellationToken)
+    public async Task<Guid> AddDepartmentWithDepartmentLocationAsync(Department department, IEnumerable<DepartmentLocation> departmentLocations, CancellationToken cancellationToken)
     {
         using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
@@ -48,40 +45,47 @@ public class DepartmentsRepository : IDepartmentsRepository
 
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-
-            _logger.LogInformation("Новый отдел с Id {DepartmentId} и его связи с локациями добавлены", department.Id.Value);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await transaction.RollbackAsync(cancellationToken);
-            _logger.LogError(ex, "Ошибка при добавлении отдела и его связей с локациями");
+            throw new InfrastructureBadRequestException(Error.Failure("department.add_failed", $"Не удалось добавить отдел с Id {department.Id.Value} и его связи с локациями"));
         }
 
         return department.Id.Value;
     }
 
-    public async Task<Department?> GetByIdAsync(DepartmentId id, CancellationToken cancellationToken)
+    public async Task<Result<Department, Error>> GetByIdAsync(DepartmentId id, CancellationToken cancellationToken)
     {
-        return await _dbContext.Departments
+        var department = await _dbContext.Departments
             .Where(x => x.Id == id)
             .FirstOrDefaultAsync(cancellationToken);
+
+        return department is not null
+            ? department : Error.NotFound("id.not_found", $"Отдел с Id {id.Value} не найден");
     }
 
-    public async Task<Department?> GetByNameAsync(Name name, CancellationToken cancellationToken)
+    public async Task<Result<Department, Error>> GetByNameAsync(Name name, CancellationToken cancellationToken)
     {
-        return await _dbContext.Departments
+        var department = await _dbContext.Departments
             .Where(x => x.Name == name)
             .FirstOrDefaultAsync(cancellationToken);
+
+        return department is not null
+            ? department : Error.NotFound("name.not_found", $"Отдел с именем {name.Value} не найден");
     }
 
-    public async Task<Department?> GetBySlugAsync(Slug slug, CancellationToken cancellationToken)
+    public async Task<Result<Department, Error>> GetBySlugAsync(Slug slug, CancellationToken cancellationToken)
     {
-        return await _dbContext.Departments
+        var department = await _dbContext.Departments
             .Where(x => x.Slug == slug)
             .FirstOrDefaultAsync(cancellationToken);
+
+        return department is not null
+            ? department : Error.NotFound("slug.not_found", $"Отдел с slug {slug.Value} не найден");
     }
 
-    public async Task<DepartmentLocation?> AddDepartmentLocationAsync(DepartmentLocation departmentLocation, CancellationToken cancellationToken)
+    public async Task<Result<DepartmentLocation, Error>> AddDepartmentLocationAsync(DepartmentLocation departmentLocation, CancellationToken cancellationToken)
     {
         var existingDepartmentLocation = await _dbContext.DepartmentLocations
             .Where(dl => dl.DepartmentId == departmentLocation.DepartmentId && dl.LocationId == departmentLocation.LocationId)
@@ -89,19 +93,16 @@ public class DepartmentsRepository : IDepartmentsRepository
 
         if (existingDepartmentLocation is not null)
         {
-            _logger.LogError("Связь отдела с Id {DepartmentId} и локации с Id {LocationId} уже существует", departmentLocation.DepartmentId, departmentLocation.LocationId);
-            return null;
+            return Error.Conflict("department_location.conflict", $"Связь отдела с Id {departmentLocation.DepartmentId} и локации с Id {departmentLocation.LocationId} уже существует");
         }
 
         await _dbContext.DepartmentLocations.AddAsync(departmentLocation, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Связь отдела с Id {DepartmentId} и локации с Id {LocationId} добавлена", departmentLocation.DepartmentId, departmentLocation.LocationId);
-
         return departmentLocation;
     }
 
-    public async Task<DepartmentLocation?> RemoveDepartmentLocationAsync(DepartmentId departmentId, LocationId locationId, CancellationToken cancellationToken)
+    public async Task<Result<DepartmentLocation, Error>> RemoveDepartmentLocationAsync(DepartmentId departmentId, LocationId locationId, CancellationToken cancellationToken)
     {
         var existingDepartmentLocation = await _dbContext.DepartmentLocations
             .Where(dl => dl.DepartmentId == departmentId && dl.LocationId == locationId)
@@ -109,15 +110,12 @@ public class DepartmentsRepository : IDepartmentsRepository
 
         if (existingDepartmentLocation is null)
         {
-            _logger.LogError("Связь отдела с Id {DepartmentId} и локации с Id {LocationId} не найдена", departmentId, locationId);
-            return null;
+            return Error.NotFound("department_location.not_found", $"Связь отдела с Id {departmentId} и локации с Id {locationId} не найдена");
         }
 
         _dbContext.DepartmentLocations.Remove(existingDepartmentLocation);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
-
-        _logger.LogInformation("Связь отдела с Id {DepartmentId} и локации с Id {LocationId} удалена", departmentId, locationId);
 
         return existingDepartmentLocation;
     }
