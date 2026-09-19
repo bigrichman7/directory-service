@@ -23,5 +23,9 @@ public static partial class Errors
             Error.Failure(
                 code: "department.failure",
                 message: message);
+        public static Error Validation(string message) =>
+            Error.Validation(
+                code: "department.validation",
+                message: message);
     }
 }

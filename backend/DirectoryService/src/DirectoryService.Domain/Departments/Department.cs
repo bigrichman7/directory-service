@@ -37,7 +37,7 @@ public sealed class Department
 
     public ICollection<DepartmentPosition> DepartmentPositions { get; private set; } = new List<DepartmentPosition>();
 
-    public ICollection<Department> Children { get; private set; } = new List<Department>();
+    public ICollection<Department> Children { get; private set; } = [];
 
     public static Result<Department, Error> Create(string name, string slug, DepartmentId? parentId = null, ValueObjects.Path? parentPath = null)
     {

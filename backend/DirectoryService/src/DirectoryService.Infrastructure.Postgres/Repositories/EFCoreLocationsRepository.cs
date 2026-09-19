@@ -2,19 +2,17 @@
 using DirectoryService.Core.Locations;
 using DirectoryService.Domain.Locations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using Shared;
 
 namespace DirectoryService.Infrastructure.Postgres.Repositories;
 
 public class EFCoreLocationsRepository : ILocationsRepository
 {
     private readonly DirectoryServiceDbContext _dbContext;
-    private readonly ILogger<EFCoreLocationsRepository> _logger;
 
-    public EFCoreLocationsRepository(DirectoryServiceDbContext dbContext, ILogger<EFCoreLocationsRepository> logger)
+    public EFCoreLocationsRepository(DirectoryServiceDbContext dbContext)
     {
         _dbContext = dbContext;
-        _logger = logger;
     }
 
     public async Task<Guid> AddAsync(Location location, CancellationToken cancellationToken)
@@ -22,8 +20,6 @@ public class EFCoreLocationsRepository : ILocationsRepository
         await _dbContext.Locations.AddAsync(location, cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
-
-        _logger.LogInformation("Новая локация с Id {LocationId} добавлена", location.Id.Value);
 
         return location.Id.Value;
     }
@@ -33,23 +29,28 @@ public class EFCoreLocationsRepository : ILocationsRepository
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Локация с Id {LocationId} обновлена", location.Id.Value);
+        return location;
+    }
+
+    public async Task<Result<Location, Error>> GetByIdAsync(LocationId id, CancellationToken cancellationToken)
+    {
+        var location = await _dbContext.Locations
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        if (location == null)
+        {
+            return Error.NotFound("location.not_found", $"Локация с Id {id} не найдена.");
+        }
 
         return location;
     }
 
-    public async Task<Location?> GetByIdAsync(LocationId id, CancellationToken cancellationToken)
-    {
-        return await _dbContext.Locations
-            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-    }
-
-    public async Task<IEnumerable<Location>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<Location>, Error>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
     {
         var idsList = ids.Distinct().ToList();
         if (idsList.Count == 0)
         {
-            return [];
+            return Error.NotFound("locations.not_found", $"Локации с указанными {ids} не найдены.");
         }
 
         var locationIds = idsList.ConvertAll(id => new LocationId(id));
@@ -59,9 +60,16 @@ public class EFCoreLocationsRepository : ILocationsRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<Location?> GetByNameAsync(string name, CancellationToken cancellationToken)
+    public async Task<Result<Location, Error>> GetByNameAsync(string name, CancellationToken cancellationToken)
     {
-        return await _dbContext.Locations
+        var location = await _dbContext.Locations
             .FirstOrDefaultAsync(x => x.Name.Value == name, cancellationToken);
+
+        if (location == null)
+        {
+            return Error.NotFound("location.not_found", $"Локация с именем {name} не найдена.");
+        }
+
+        return location;
     }
 }

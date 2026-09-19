@@ -1,6 +1,7 @@
 ﻿using DirectoryService.Contracts.Location;
 using DirectoryService.Core.Locations;
 using Microsoft.AspNetCore.Mvc;
+using Shared;
 
 namespace DirectoryService.Web.Controllers;
 
@@ -24,17 +25,25 @@ public class LocationsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateLocationDto location, CancellationToken cancellationToken)
     {
-        var locationId = await _locationService.Create(location, cancellationToken);
+        var result = await _locationService.Create(location, cancellationToken);
+        if(result.IsFailure)
+        {
+            return result.Error.ToFailure().ToResponse();
+        }
 
-        return Ok(locationId);
+        return Ok(result.Value);
     }
 
     [HttpPatch("{locationId:guid}")]
     public async Task<IActionResult> UpdateLocation([FromRoute] Guid locationId, [FromBody] UpdateLocationDto location, CancellationToken cancellationToken)
     {
-        var locationResult = await _locationService.Update(locationId, location, cancellationToken);
+        var result = await _locationService.Update(locationId, location, cancellationToken);
+        if(result.IsFailure)
+        {
+            return result.Error.ToFailure().ToResponse();
+        }
 
-        return Ok(locationResult);
+        return Ok(result.Value);
     }
 
     [HttpPut("{locationId:guid}")]

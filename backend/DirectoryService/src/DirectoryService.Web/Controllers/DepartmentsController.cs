@@ -1,6 +1,7 @@
 ﻿using DirectoryService.Contracts.Department;
 using DirectoryService.Core.Departments;
 using Microsoft.AspNetCore.Mvc;
+using Shared.ResponseExtensions;
 
 namespace DirectoryService.Web.Controllers;
 
@@ -31,32 +32,48 @@ public class DepartmentsController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateDepartmentDto department, CancellationToken cancellationToken)
     {
         var result = await _departmentsService.Create(department, cancellationToken);
+        if(result.IsFailure)
+        {
+            return result.Error.ToFailure().ToResponse();
+        }
 
-        return Ok(result);
+        return Ok(result.Value);
     }
 
     [HttpPost("{departmentId:guid}/locations/{locationId:guid}")]
     public async Task<IActionResult> AddLocationToDepartment([FromRoute] Guid departmentId, [FromRoute] Guid locationId, [FromBody] bool? isPrimary, CancellationToken cancellationToken)
     {
         var result = await _departmentsService.AddLocation(departmentId, locationId, isPrimary ?? false, cancellationToken);
+        if(result.IsFailure)
+        {
+            return result.Error.ToFailure().ToResponse();
+        }
 
-        return Ok(result);
+        return Ok(result.Value);
     }
 
     [HttpDelete("{departmentId:guid}/locations/{locationId:guid}")]
     public async Task<IActionResult> RemoveLocationFromDepartment([FromRoute] Guid departmentId, [FromRoute] Guid locationId, CancellationToken cancellationToken)
     {
         var result = await _departmentsService.RemoveLocation(departmentId, locationId, cancellationToken);
+        if(result.IsFailure)
+        {
+            return result.Error.ToFailure().ToResponse();
+        }
 
-        return Ok(result);
+        return Ok(result.Value);
     }
 
     [HttpPatch("{departmentId:guid}")]
     public async Task<IActionResult> UpdateDepartment([FromRoute] Guid departmentId, [FromBody] UpdateDepartmentDto departmentDto, CancellationToken cancellation)
     {
         var result = await _departmentsService.Update(departmentId, departmentDto, cancellation);
+        if(result.IsFailure)
+        {
+            return result.Error.ToFailure().ToResponse();
+        }
 
-        return Ok(result);
+        return Ok(result.Value);
     }
 
     [HttpPut("{departmentId:guid}")]

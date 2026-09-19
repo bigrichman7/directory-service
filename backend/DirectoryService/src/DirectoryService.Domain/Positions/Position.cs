@@ -25,7 +25,7 @@ public sealed class Position
 
     public DateTime UpdatedAt { get; private set; }
 
-    public ICollection<DepartmentPosition> DepartmentPositions { get; private set; } = new List<DepartmentPosition>();
+    public ICollection<DepartmentPosition> DepartmentPositions { get; private set; } = [];
 
     public static Result<Position, Error> Create(string name)
     {

@@ -1,40 +1,49 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
 
 namespace Shared;
 
+public record ErrorMessages(
+    string Code,
+    string Message,
+    string? InvalidField = null
+);
 public record Error
 {
-    public static readonly Error None = new(string.Empty, string.Empty, ErrorType.NONE, invalidField: null);
+    public IReadOnlyList<ErrorMessages> Messages { get; } = [];
 
-    public string Code { get; }
-
-    public string Message { get; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public ErrorType Type { get; }
 
-    public string? InvalidField { get; }
 
     [JsonConstructor]
-    private Error(string code, string message, ErrorType type, string? invalidField)
+    private Error(IEnumerable<ErrorMessages> messages, ErrorType type)
     {
-        Code = code;
-        Message = message;
+        Messages = [.. messages];
         Type = type;
-        InvalidField = invalidField;
     }
 
     public static Error NotFound(string? code, string message)
-        => new(code ?? "record.not.found", message, ErrorType.NOT_FOUND, invalidField: null);
+        => new([new ErrorMessages(code ?? "record.not.found", message, InvalidField: null)], ErrorType.NOT_FOUND);
+    public static Error NotFound(params ErrorMessages[] messages)
+        => new(messages, ErrorType.NOT_FOUND);
 
     public static Error Validation(string? code, string message, string? invalidField = null)
-        => new(code ?? "value.is.invalid", message, ErrorType.VALIDATION, invalidField);
+        => new([new ErrorMessages(code ?? "value.is.invalid", message, invalidField)], ErrorType.VALIDATION);
+    public static Error Validation(params ErrorMessages[] messages)
+        => new(messages, ErrorType.VALIDATION);
 
     public static Error Conflict(string? code, string message, string? invalidField = null)
-        => new(code ?? "value.is.conflict", message, ErrorType.CONFLICT, invalidField: invalidField);
+        => new([new ErrorMessages(code ?? "value.is.conflict", message, invalidField)], ErrorType.CONFLICT);
+    public static Error Conflict(params ErrorMessages[] messages)
+        => new(messages, ErrorType.CONFLICT);
 
     public static Error Failure(string? code, string message)
-        => new(code ?? "failure", message, ErrorType.FAILURE, invalidField: null);
+        => new([new ErrorMessages(code ?? "failure", message, InvalidField: null)], ErrorType.FAILURE);
+
+    public static Error Failure(params ErrorMessages[] messages)
+        => new(messages, ErrorType.FAILURE);
 
     public Failure ToFailure() => this;
 }
