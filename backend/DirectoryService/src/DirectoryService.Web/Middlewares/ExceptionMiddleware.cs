@@ -1,6 +1,7 @@
 ﻿using Shared;
 using Shared.Exceptions;
 using System.Text.Json;
+using DirectoryService.Web.EndpointResults;
 
 namespace DirectoryService.Web.Middlewares;
 
@@ -35,25 +36,9 @@ public class ExceptionMiddleware
             context.Request.Method,
             context.Request.Path);
 
-        (int code, Error[]? errors) = exception switch
-        {
-            BadRequestException => (
-                StatusCodes.Status400BadRequest, JsonSerializer.Deserialize<Error[]>(exception.Message)),
+        var errorResult = new ErrorResult(Error.Failure(code: "directory_service.error", "Непредвиденная ошибка сервера"));
 
-            NotFoundException => (
-                StatusCodes.Status404NotFound, JsonSerializer.Deserialize<Error[]>(exception.Message)),
-
-            ConflictException => (
-                StatusCodes.Status409Conflict, JsonSerializer.Deserialize<Error[]>(exception.Message)),
-
-            _ => (
-                StatusCodes.Status500InternalServerError, [Error.Failure(code: null, "Внутренняя ошибка сервера")]),
-        };
-
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = code;
-
-        await context.Response.WriteAsync(JsonSerializer.Serialize(errors), cancellationToken: context.RequestAborted);
+        await errorResult.ExecuteAsync(context);
     }
 }
 
