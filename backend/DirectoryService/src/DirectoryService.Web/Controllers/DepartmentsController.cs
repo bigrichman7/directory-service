@@ -1,7 +1,8 @@
 ﻿using DirectoryService.Contracts.Department;
 using DirectoryService.Core.Departments;
+using DirectoryService.Web.EndpointResults;
 using Microsoft.AspNetCore.Mvc;
-using Shared.ResponseExtensions;
+using System.Net;
 
 namespace DirectoryService.Web.Controllers;
 
@@ -17,74 +18,114 @@ public class DepartmentsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(CancellationToken cancellation)
+    [ProducesResponseType(typeof(Envelope<DepartmentResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<DepartmentResponse>> Get(CancellationToken cancellation)
     {
-        return Ok(new List<object>());
+        var dummy = new DepartmentResponse(
+            Id: Guid.Empty,
+            ParentId: Guid.Empty,
+            Name: "Тестовый отдел (заглушка)",
+            Slug: "TEST",
+            Path: "TEST",
+            CreatedAt: DateTime.UtcNow,
+            UpdatedAt: DateTime.UtcNow);
+
+        return new EndpointResult<DepartmentResponse>(
+            dummy,
+            statusCode: (int)HttpStatusCode.OK);
     }
 
     [HttpGet("{departmentId:guid}")]
-    public async Task<IActionResult> GetById([FromRoute] Guid departmentId, CancellationToken cancellationToken) 
+    [ProducesResponseType(typeof(Envelope<DepartmentResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<DepartmentResponse>> GetById([FromRoute] Guid departmentId, CancellationToken cancellationToken) 
     {
-        return NotFound("Department didn't be found");
+        var dummy = new DepartmentResponse(
+            Id: Guid.Empty,
+            ParentId: Guid.Empty,
+            Name: "Тестовый отдел (заглушка)",
+            Slug: "TEST",
+            Path: "TEST",
+            CreatedAt: DateTime.UtcNow,
+            UpdatedAt: DateTime.UtcNow);
+
+        return new EndpointResult<DepartmentResponse>(
+            dummy,
+            statusCode: (int)HttpStatusCode.OK);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateDepartmentDto department, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(Envelope<Guid>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<Guid>> Create([FromBody] CreateDepartmentDto department, CancellationToken cancellationToken)
     {
         var result = await _departmentsService.Create(department, cancellationToken);
-        if(result.IsFailure)
-        {
-            return result.Error.ToFailure().ToResponse();
-        }
 
-        return Ok(result.Value);
+        return new EndpointResult<Guid>(
+            result,
+            statusCode: (int)HttpStatusCode.Created);
     }
 
     [HttpPost("{departmentId:guid}/locations/{locationId:guid}")]
-    public async Task<IActionResult> AddLocationToDepartment([FromRoute] Guid departmentId, [FromRoute] Guid locationId, [FromBody] bool? isPrimary, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(Envelope<DepartmentLocationResponse>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<DepartmentLocationResponse>> AddLocationToDepartment([FromRoute] Guid departmentId, [FromRoute] Guid locationId, [FromBody] bool? isPrimary, CancellationToken cancellationToken)
     {
         var result = await _departmentsService.AddLocation(departmentId, locationId, isPrimary ?? false, cancellationToken);
-        if(result.IsFailure)
-        {
-            return result.Error.ToFailure().ToResponse();
-        }
 
-        return Ok(result.Value);
+        return new EndpointResult<DepartmentLocationResponse>(
+            result,
+            statusCode: (int)HttpStatusCode.Created);
     }
 
     [HttpDelete("{departmentId:guid}/locations/{locationId:guid}")]
-    public async Task<IActionResult> RemoveLocationFromDepartment([FromRoute] Guid departmentId, [FromRoute] Guid locationId, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(Envelope<DepartmentLocationResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<DepartmentLocationResponse>> RemoveLocationFromDepartment([FromRoute] Guid departmentId, [FromRoute] Guid locationId, CancellationToken cancellationToken)
     {
-        var result = await _departmentsService.RemoveLocation(departmentId, locationId, cancellationToken);
-        if(result.IsFailure)
-        {
-            return result.Error.ToFailure().ToResponse();
-        }
-
-        return Ok(result.Value);
+        return await _departmentsService.RemoveLocation(departmentId, locationId, cancellationToken);
     }
 
     [HttpPatch("{departmentId:guid}")]
-    public async Task<IActionResult> UpdateDepartment([FromRoute] Guid departmentId, [FromBody] UpdateDepartmentDto departmentDto, CancellationToken cancellation)
+    [ProducesResponseType(typeof(Envelope<DepartmentResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<DepartmentResponse>> UpdateDepartment([FromRoute] Guid departmentId, [FromBody] UpdateDepartmentDto departmentDto, CancellationToken cancellation)
     {
-        var result = await _departmentsService.Update(departmentId, departmentDto, cancellation);
-        if(result.IsFailure)
-        {
-            return result.Error.ToFailure().ToResponse();
-        }
-
-        return Ok(result.Value);
+        return await _departmentsService.Update(departmentId, departmentDto, cancellation);
     }
 
     [HttpPut("{departmentId:guid}")]
-    public async Task<IActionResult> Update([FromRoute] Guid departmentId, [FromBody] UpdateDepartmentDto departmentDto, CancellationToken cancellation)
+    [ProducesResponseType(typeof(Envelope<DepartmentResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<DepartmentResponse>> Update([FromRoute] Guid departmentId, [FromBody] UpdateDepartmentDto departmentDto, CancellationToken cancellation)
     {
-        return Ok("Department updated");
+        return await _departmentsService.Update(departmentId, departmentDto, cancellation);
     }
 
     [HttpDelete("{departmentId:guid}")]
-    public async Task<IActionResult> Delete([FromRoute] Guid departmentId, CancellationToken cancellation)
+    [ProducesResponseType(typeof(Envelope<Guid>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<Guid>> Delete([FromRoute] Guid departmentId, CancellationToken cancellation)
     {
-        return Ok("Department deleted");
+        return new EndpointResult<Guid>(
+            Guid.Empty,
+            statusCode: (int)HttpStatusCode.OK);
     }
 }

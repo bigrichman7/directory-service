@@ -1,6 +1,8 @@
-﻿using DirectoryService.Contracts.Position;
-using DirectoryService.Domain.Positions;
+﻿using DirectoryService.Contracts.Location;
+using DirectoryService.Contracts.Position;
+using DirectoryService.Web.EndpointResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace DirectoryService.Web.Controllers;
 
@@ -9,33 +11,81 @@ namespace DirectoryService.Web.Controllers;
 public class PositionsController : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> Get(CancellationToken cancellation)
+    [ProducesResponseType(typeof(Envelope<PositionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<PositionResponse>> Get(CancellationToken cancellation)
     {
-        return Ok(new List<object>());
+        var dummy = new PositionResponse(
+            Guid.Empty,
+            "Тестовая должность (заглушка)",
+            DateTime.UtcNow,
+            DateTime.UtcNow);
+
+        return new EndpointResult<PositionResponse>(
+            dummy,
+            (int)HttpStatusCode.OK);
     }
 
     [HttpGet("{positionId:guid}")]
-    public async Task<IActionResult> GetById([FromRoute] Guid positionId, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(Envelope<PositionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<PositionResponse>> GetById([FromRoute] Guid positionId, CancellationToken cancellationToken)
     {
-        return NotFound("Position didn't be found");
+        var dummy = new PositionResponse(
+            Guid.Empty,
+            "Тестовая должность (заглушка)",
+            DateTime.UtcNow,
+            DateTime.UtcNow);
+
+        return new EndpointResult<PositionResponse>(
+            dummy,
+            (int)HttpStatusCode.OK);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreatePositionDto position, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(Envelope<Guid>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<Guid>> Create([FromBody] CreatePositionDto position, CancellationToken cancellationToken)
     {
-        return Ok("Position created");
+        return new EndpointResult<Guid>(
+            Guid.Empty,
+            (int)HttpStatusCode.OK);
     }
 
     [HttpPut("{positionId:guid}")]
-    public async Task<IActionResult> Update([FromRoute] Guid positionId, [FromBody] UpdatePositionDto position, CancellationToken cancellation)
+    [ProducesResponseType(typeof(Envelope<PositionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<PositionResponse>> Update([FromRoute] Guid positionId, [FromBody] UpdatePositionDto position, CancellationToken cancellation)
     {
-        return Ok("Position updated");
+        var dummy = new PositionResponse(
+            Guid.Empty,
+            "Тестовая должность (заглушка)",
+            DateTime.UtcNow,
+            DateTime.UtcNow);
+
+        return new EndpointResult<PositionResponse>(
+            dummy,
+            (int)HttpStatusCode.OK);
     }
 
     [HttpDelete("{positionId:guid}")]
-    public async Task<IActionResult> Delete([FromRoute] Guid positionId, CancellationToken cancellation)
+    [ProducesResponseType(typeof(Envelope<Guid>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<Guid>> Delete([FromRoute] Guid positionId, CancellationToken cancellation)
     {
-        return Ok("Position deleted");
+        return new EndpointResult<Guid>(
+            Guid.Empty,
+            (int)HttpStatusCode.OK);
     }
 }
 

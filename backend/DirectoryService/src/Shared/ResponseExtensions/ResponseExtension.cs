@@ -3,15 +3,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Shared.ResponseExtensions;
 
+// Класс больше не используется с DS-10, оставил для примера
 public static class ResponseExtension
 {
     public static IActionResult ToResponse(this Failure failure)
     {
         if(!failure.Any())
         {
-            return new ObjectResult(null)
+            return new ObjectResult(value: null)
             {
-                StatusCode = StatusCodes.Status500InternalServerError
+                StatusCode = StatusCodes.Status500InternalServerError,
             };
         }
 

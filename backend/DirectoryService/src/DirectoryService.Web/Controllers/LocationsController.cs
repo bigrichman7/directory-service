@@ -1,7 +1,8 @@
 ﻿using DirectoryService.Contracts.Location;
 using DirectoryService.Core.Locations;
+using DirectoryService.Web.EndpointResults;
 using Microsoft.AspNetCore.Mvc;
-using Shared;
+using System.Net;
 
 namespace DirectoryService.Web.Controllers;
 
@@ -17,44 +18,67 @@ public class LocationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(CancellationToken cancellation)
+    [ProducesResponseType(typeof(Envelope<LocationResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<LocationResponse>> Get(CancellationToken cancellation)
     {
-        return Ok(new List<object>());
+        var dummy = new LocationResponse(
+            Guid.Empty,
+            "Тестовая локация (заглушка)",
+            "Тестовый адрес",
+            DateTime.UtcNow,
+            DateTime.UtcNow);
+        
+        return new EndpointResult<LocationResponse>(
+            dummy,
+            statusCode: (int)HttpStatusCode.OK);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateLocationDto location, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(Envelope<Guid>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<Guid>> Create([FromBody] CreateLocationDto location, CancellationToken cancellationToken)
     {
         var result = await _locationService.Create(location, cancellationToken);
-        if(result.IsFailure)
-        {
-            return result.Error.ToFailure().ToResponse();
-        }
 
-        return Ok(result.Value);
+        return new EndpointResult<Guid>(
+            result,
+            statusCode: (int)HttpStatusCode.Created);
     }
 
     [HttpPatch("{locationId:guid}")]
-    public async Task<IActionResult> UpdateLocation([FromRoute] Guid locationId, [FromBody] UpdateLocationDto location, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(Envelope<LocationResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<LocationResponse>> UpdateLocation([FromRoute] Guid locationId, [FromBody] UpdateLocationDto location, CancellationToken cancellationToken)
     {
-        var result = await _locationService.Update(locationId, location, cancellationToken);
-        if(result.IsFailure)
-        {
-            return result.Error.ToFailure().ToResponse();
-        }
-
-        return Ok(result.Value);
+        return await _locationService.Update(locationId, location, cancellationToken);
     }
 
     [HttpPut("{locationId:guid}")]
-    public async Task<IActionResult> Update([FromRoute] Guid locationId, [FromBody] UpdateLocationDto location, CancellationToken cancellation)
+    [ProducesResponseType(typeof(Envelope<LocationResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<LocationResponse>> Update([FromRoute] Guid locationId, [FromBody] UpdateLocationDto location, CancellationToken cancellationToken)
     {
-        return Ok("Location updated");
+        return await _locationService.Update(locationId, location, cancellationToken);
     }
 
     [HttpDelete("{locationId:guid}")]
-    public async Task<IActionResult> Delete([FromRoute] Guid locationId, CancellationToken cancellation)
+    [ProducesResponseType(typeof(Envelope<Guid>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Envelope), StatusCodes.Status500InternalServerError)]
+    public async Task<EndpointResult<Guid>> Delete([FromRoute] Guid locationId, CancellationToken cancellation)
     {
-        return Ok("Location deleted");
+        return new EndpointResult<Guid>(
+            Guid.Empty,
+            statusCode: (int)HttpStatusCode.OK);
     }
 }
