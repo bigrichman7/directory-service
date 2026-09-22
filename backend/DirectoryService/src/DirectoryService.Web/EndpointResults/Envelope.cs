@@ -38,6 +38,6 @@ public record Envelope<T>
         Errors = errors;
         TimeGenerated = DateTime.UtcNow;
     }
-    public Envelope<T> Ok(T? result) => new(result, errors: null);
-    public Envelope<T> Error(Error? errors) => new(result: default, errors);
+    internal static Envelope<T> Ok(T? result) => new(result, errors: null);
+    internal static Envelope<T> Error(Error? errors) => new(result: default, errors);
 }

@@ -18,7 +18,7 @@ public sealed class SuccessResult<TValue> : IResult
     {
         ArgumentNullException.ThrowIfNull(httpContext);
 
-        var envelope = Envelope.Ok(_value);
+        var envelope = Envelope<TValue>.Ok(_value);
 
         httpContext.Response.StatusCode = _statusCode;
 
