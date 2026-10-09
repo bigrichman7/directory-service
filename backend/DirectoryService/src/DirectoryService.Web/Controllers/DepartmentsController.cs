@@ -35,7 +35,7 @@ public class DepartmentsController : ControllerBase
 
         return new EndpointResult<DepartmentResponse>(
             dummy,
-            statusCode: (int)HttpStatusCode.OK);
+            statusCode: StatusCodes.Status200OK);
     }
 
     [HttpGet("{departmentId:guid}")]
@@ -56,7 +56,7 @@ public class DepartmentsController : ControllerBase
 
         return new EndpointResult<DepartmentResponse>(
             dummy,
-            statusCode: (int)HttpStatusCode.OK);
+            statusCode: StatusCodes.Status200OK);
     }
 
     [HttpPost]
@@ -70,7 +70,7 @@ public class DepartmentsController : ControllerBase
 
         return new EndpointResult<Guid>(
             result,
-            statusCode: (int)HttpStatusCode.Created);
+            statusCode: StatusCodes.Status201Created);
     }
 
     [HttpPost("{departmentId:guid}/locations/{locationId:guid}")]
@@ -84,7 +84,7 @@ public class DepartmentsController : ControllerBase
 
         return new EndpointResult<DepartmentLocationResponse>(
             result,
-            statusCode: (int)HttpStatusCode.Created);
+            statusCode: StatusCodes.Status200OK);
     }
 
     [HttpDelete("{departmentId:guid}/locations/{locationId:guid}")]
@@ -126,6 +126,6 @@ public class DepartmentsController : ControllerBase
     {
         return new EndpointResult<Guid>(
             Guid.Empty,
-            statusCode: (int)HttpStatusCode.OK);
+            statusCode: StatusCodes.Status200OK);
     }
 }
