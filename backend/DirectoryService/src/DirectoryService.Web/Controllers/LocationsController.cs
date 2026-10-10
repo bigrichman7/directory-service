@@ -33,7 +33,7 @@ public class LocationsController : ControllerBase
         
         return new EndpointResult<LocationResponse>(
             dummy,
-            statusCode: (int)HttpStatusCode.OK);
+            statusCode: StatusCodes.Status200OK);
     }
 
     [HttpPost]
@@ -47,7 +47,7 @@ public class LocationsController : ControllerBase
 
         return new EndpointResult<Guid>(
             result,
-            statusCode: (int)HttpStatusCode.Created);
+            statusCode: StatusCodes.Status200OK);
     }
 
     [HttpPatch("{locationId:guid}")]
@@ -79,6 +79,6 @@ public class LocationsController : ControllerBase
     {
         return new EndpointResult<Guid>(
             Guid.Empty,
-            statusCode: (int)HttpStatusCode.OK);
+            statusCode: StatusCodes.Status200OK);
     }
 }

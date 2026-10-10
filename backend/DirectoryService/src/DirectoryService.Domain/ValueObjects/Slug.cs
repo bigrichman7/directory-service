@@ -16,22 +16,35 @@ public partial record Slug
     public static Result<Slug, Error> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return Error.Validation("slug.is.required", "Требуется slug");
+            return Error.Validation("slug.is.required", "Требуется slug", "slug");
+
+        List<ErrorMessages> errors = [];
 
         var normalized = value.Trim().ToLowerInvariant();
 
         if (normalized.Length < MIN_LENGTH || normalized.Length > MAX_LENGTH)
         {
-            return Error.Validation("slug.invalid_length", $"slug (от {MIN_LENGTH} до {MAX_LENGTH} символов)");
+            errors.Add(new ErrorMessages
+            (
+                "slug.invalid_length",
+                $"slug (от {MIN_LENGTH} до {MAX_LENGTH} символов)",
+                "slug"
+            ));
         }
 
         if (!SlugPattern().IsMatch(normalized))
         {
-            return Error.Validation(
+            errors.Add(new ErrorMessages
+            (
                 "slug.invalid_format",
                 "slug (только строчные латинские буквы, цифры и дефисы, " +
-                "не начинается и не заканчивается дефисом)");
+                "не начинается и не заканчивается дефисом)",
+                "slug"
+            ));
         }
+
+        if (errors.Count > 0)
+            return Error.Validation([.. errors]);
 
         return new Slug(normalized);
     }

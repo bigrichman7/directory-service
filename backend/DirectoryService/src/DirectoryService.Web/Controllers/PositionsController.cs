@@ -25,7 +25,7 @@ public class PositionsController : ControllerBase
 
         return new EndpointResult<PositionResponse>(
             dummy,
-            (int)HttpStatusCode.OK);
+            StatusCodes.Status200OK);
     }
 
     [HttpGet("{positionId:guid}")]
@@ -43,7 +43,7 @@ public class PositionsController : ControllerBase
 
         return new EndpointResult<PositionResponse>(
             dummy,
-            (int)HttpStatusCode.OK);
+            StatusCodes.Status200OK);
     }
 
     [HttpPost]
@@ -55,7 +55,7 @@ public class PositionsController : ControllerBase
     {
         return new EndpointResult<Guid>(
             Guid.Empty,
-            (int)HttpStatusCode.OK);
+            StatusCodes.Status200OK);
     }
 
     [HttpPut("{positionId:guid}")]
@@ -73,7 +73,7 @@ public class PositionsController : ControllerBase
 
         return new EndpointResult<PositionResponse>(
             dummy,
-            (int)HttpStatusCode.OK);
+            StatusCodes.Status200OK);
     }
 
     [HttpDelete("{positionId:guid}")]
@@ -85,7 +85,7 @@ public class PositionsController : ControllerBase
     {
         return new EndpointResult<Guid>(
             Guid.Empty,
-            (int)HttpStatusCode.OK);
+            StatusCodes.Status200OK);
     }
 }
 

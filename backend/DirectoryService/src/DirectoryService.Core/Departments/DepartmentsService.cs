@@ -9,6 +9,7 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared.Extensions;
 using Shared;
+using DirectoryService.Core.Validation;
 
 namespace DirectoryService.Core.Departments;
 
@@ -77,7 +78,10 @@ public class DepartmentsService(
         return department.Id.Value;
     }
 
-    public async Task<Result<DepartmentResponse, Error>> Update(Guid departmentId, UpdateDepartmentDto departmentDto, CancellationToken cancellationToken)
+    public async Task<Result<DepartmentResponse, Error>> Update(
+        Guid departmentId,
+        UpdateDepartmentDto departmentDto,
+        CancellationToken cancellationToken)
     {
         var existingDepartmentResult = await _departmentsRepository.GetByIdAsync(new DepartmentId(departmentId), cancellationToken);
         if (existingDepartmentResult.IsFailure)
@@ -91,6 +95,19 @@ public class DepartmentsService(
         {
             _logger.LogError("Нет полей для обновления подразделения с Id {DepartmentId}.", departmentId);
             return Errors.General.Failure("Нет полей для обновления.");
+        }
+
+        var departmentDtoValidatorResult = await DepartmentDtoValidator(new CreateDepartmentDto
+        (
+            Name: departmentDto.Name ?? existingDepartment.Name.Value,
+            Slug: departmentDto.Slug ?? existingDepartment.Slug.Value,
+            LocationIds: null,
+            ParentId: null
+        ), cancellationToken);
+
+        if (departmentDtoValidatorResult.IsFailure)
+        {
+            return departmentDtoValidatorResult.Error;
         }
 
         if (departmentDto.Name != null)
@@ -218,7 +235,7 @@ public class DepartmentsService(
         if (!validationResult.IsValid)
         {
             _logger.LogError("Ошибка валидации: {Errors}", validationResult.ToErrors());
-            return validationResult.ToErrors();
+            return validationResult.ToError();
         }
 
         var nameExists = await _departmentsRepository.GetByNameAsync(Name.Create(dto.Name).Value, cancellationToken);

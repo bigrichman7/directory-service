@@ -18,18 +18,46 @@ public sealed record Name
     public static Result<Name, Error> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-         return Error.Validation("name.is.required", "Требуется название");
+         return Error.Validation("name.is.required", "Требуется название", "name");
+
+        List<ErrorMessages> errors = [];
 
         var normalized = value.Trim();
 
         if (normalized.Length < MIN_LENGTH)
-            return Error.Validation("name.invalid_length", $"Название локации должно содержать минимум {MIN_LENGTH} символа");
+        {
+            errors.Add(new ErrorMessages
+            (
+                "name.invalid_length",
+                $"Название локации должно содержать минимум {MIN_LENGTH} символа",
+                "name"
+            ));
+        }
 
         if (normalized.Length > MAX_LENGTH)
-            return Error.Validation("name.too_long", $"Название локации не должно превышать {MAX_LENGTH} символов");
+        {
+            errors.Add(new ErrorMessages
+            (
+                "name.too_long",
+                $"Название локации не должно превышать {MAX_LENGTH} символов",
+                "name"
+            ));
+        }
 
         if (normalized.Any(c => char.IsControl(c)))
-            return Error.Validation("name.invalid_format", "Название локации не должно содержать управляющих символов");
+        {
+            errors.Add(new ErrorMessages
+            (
+                "name.invalid_format",
+                "Название локации не должно содержать управляющих символов",
+                "name"
+            ));
+        }
+        
+        if (errors.Count > 0)
+        {
+            return Error.Validation([..errors]);
+        }
 
         return new Name(normalized);
     }

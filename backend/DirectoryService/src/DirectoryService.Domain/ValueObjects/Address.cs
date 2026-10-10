@@ -25,52 +25,80 @@ public sealed record Address
 
     public static Result<Address, Error> Create(string city, string street, string house, string apartment)
     {
+        List<ErrorMessages> errors = [];
+
         var cityResult = ValidAttribute(city, "City");
         if (cityResult.IsFailure)
-            return cityResult.Error;
-        var normalizedCity = cityResult.Value;
+            errors.AddRange(cityResult.Error);
 
         var streetResult = ValidAttribute(street, "Street");
         if (streetResult.IsFailure)
-            return streetResult.Error;
-        var normalizedStreet = streetResult.Value;
+            errors.AddRange(streetResult.Error);
 
         var houseResult = ValidAttribute(house, "House");
         if (houseResult.IsFailure)
-            return houseResult.Error;
-        var normalizedHouse = houseResult.Value;
+            errors.AddRange(houseResult.Error);
 
         var apartmentResult = ValidAttribute(apartment, "Apartment");
         if (apartmentResult.IsFailure)
-            return apartmentResult.Error;
-        var normalizedApartment = apartmentResult.Value;
+            errors.AddRange(apartmentResult.Error);
 
-        return new Address(normalizedCity, normalizedStreet, normalizedHouse, normalizedApartment);
+        if (errors.Count > 0)
+            return Error.Validation([.. errors]);
+
+        return new Address(cityResult.Value, streetResult.Value, houseResult.Value, apartmentResult.Value);
     }
 
-    private static Result<string, Error> ValidAttribute(string attribute, string fieldName)
+    private static Result<string, List<ErrorMessages>> ValidAttribute(string attribute, string fieldName)
     {
         if (string.IsNullOrWhiteSpace(attribute))
         {
-            return Error.Validation($"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.is.required", $"Не задан параметр {fieldName}");
+            return new List<ErrorMessages>
+            {
+                new(
+                    $"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.is.required",
+                    $"Не задан параметр {fieldName}",
+                    fieldName
+                ),
+            };
         }
+
+        var errors = new List<ErrorMessages>();
 
         var normalized = attribute.Trim();
 
         if (normalized.Length < MIN_LENGTH)
-            return Error.Validation(
-                $"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.invalid_length", 
-                $"Адрес {fieldName} должен содержать минимум {MIN_LENGTH} символа");
+        {
+            errors.Add(new ErrorMessages
+            (
+                $"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.invalid_length",
+                $"Адрес {fieldName} должен содержать минимум {MIN_LENGTH} символа",
+                fieldName
+            ));
+        }
 
         if (normalized.Length > MAX_LENGTH)
-            return Error.Validation(
-                $"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.too_long", 
-                $"Адрес {fieldName} не должен превышать {MAX_LENGTH} символов");
+        {
+            errors.Add(new ErrorMessages
+            (
+                $"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.too_long",
+                $"Адрес {fieldName} не должен превышать {MAX_LENGTH} символов",
+                fieldName
+            ));
+        }
 
         if (normalized.Any(c => char.IsControl(c)))
-            return Error.Validation(
-                $"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.invalid_format", 
-                $"Адрес {fieldName} не должен содержать управляющих символов");
+        {
+            errors.Add(new ErrorMessages
+            (
+                $"{fieldName.ToLower(System.Globalization.CultureInfo.CurrentCulture)}.invalid_format",
+                $"Адрес {fieldName} не должен содержать управляющих символов",
+                fieldName
+            ));
+        }
+
+        if (errors.Count > 0)
+            return errors;
 
         return normalized;
     }

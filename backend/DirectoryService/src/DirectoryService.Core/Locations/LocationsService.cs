@@ -7,6 +7,7 @@ using Shared;
 using DirectoryService.Core.Exceptions;
 using DirectoryService.Core.Locations.Exceptions;
 using Shared.Extensions;
+using DirectoryService.Core.Validation;
 
 namespace DirectoryService.Core.Locations;
 
@@ -24,7 +25,7 @@ public class LocationsService(
         var validationResult = await _validator.ValidateAsync(locationDto, cancellationToken);
         if (!validationResult.IsValid)
         {
-            return validationResult.ToErrors();
+            return validationResult.ToError();
         }
 
         var checkName = await _locationsRepository.GetByNameAsync(locationDto.Name, cancellationToken);
@@ -35,10 +36,10 @@ public class LocationsService(
 
         var location = Location.Create(
             locationDto.Name,
-            locationDto.City,
-            locationDto.Street,
-            locationDto.House,
-            locationDto.Apartment);
+            locationDto.Address.City,
+            locationDto.Address.Street,
+            locationDto.Address.House,
+            locationDto.Address.Apartment);
 
         if (location.IsFailure)
         {
@@ -70,6 +71,30 @@ public class LocationsService(
 
         var existingLocation = existingLocationResult.Value;
 
+        var newName = locationDto.Name ?? existingLocation.Name;
+        var newCity = locationDto.City ?? existingLocation.Address.City;
+        var newStreet = locationDto.Street ?? existingLocation.Address.Street;
+        var newHouse = locationDto.House ?? existingLocation.Address.House;
+        var newApartment = locationDto.Apartment ?? existingLocation.Address.Apartment;
+
+        var LocationDtoValidationResult = await _validator.ValidateAsync(new CreateLocationDto
+        (
+            Name: newName,
+            Address: new AddressDto
+            (
+                City: newCity,
+                Street: newStreet,
+                House: newHouse,
+                Apartment: newApartment
+            )
+        ), cancellationToken);
+
+        if (!LocationDtoValidationResult.IsValid)
+        {
+            _logger.LogWarning("Ошибка валидации данных для обновления локации с id {LocationId}: {Errors}", locationId, LocationDtoValidationResult.Errors);
+            return LocationDtoValidationResult.ToError();
+        }
+
         if (locationDto.Name is not null)
         {
             var updateNameResult = existingLocation.UpdateName(locationDto.Name);
@@ -79,11 +104,6 @@ public class LocationsService(
                 return updateNameResult.Error;
             }
         }
-
-        var newCity = locationDto.City ?? existingLocation.Address.City;
-        var newStreet = locationDto.Street ?? existingLocation.Address.Street;
-        var newHouse = locationDto.House ?? existingLocation.Address.House;
-        var newApartment = locationDto.Apartment ?? existingLocation.Address.Apartment;
 
         var updateAddressResult = existingLocation.UpdateAddress(newCity, newStreet, newHouse, newApartment);
         if (updateAddressResult.IsFailure)
